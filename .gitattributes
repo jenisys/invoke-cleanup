@@ -1,0 +1,16 @@
+# Set default behaviour, in case users don't have core.autocrlf set.
+* text=auto
+
+*.txt  text eol=lf
+*.rst  text eol=lf
+*.py   text eol=lf
+
+# -- WINDOWS/DOS FILE LINE ENDINGS:
+*.cmd  text eolf=crlf
+*.bat  text eolf=crlf
+*.ps1  text eolf=crlf
+
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary

@@ -1,0 +1,24 @@
+# ============================================================================
+# PYTHON PACKAGE REQUIREMENTS FOR: cmake-build -- For development only
+# ============================================================================
+
+-r basic.txt
+
+# -- CONFIGURATION MANAGEMENT (helpers):
+bumpversion >= 0.4.0
+
+# -- DEVELOPMENT SUPPORT:
+tox   >= 1.8.1
+coverage >= 4.2
+pytest-cov
+
+# -- PYTHON2/3 COMPATIBILITY: pypa/modernize
+# python-futurize
+modernize >= 0.5
+
+# -- STATIC CODE ANALYSIS:
+pylint
+
+# -- REQUIRES: testing, docs, invoke-task requirements
+-r testing.txt
+-r ../tasks/py.requirements.txt

@@ -1,0 +1,26 @@
+# =====================================================
+# INVOKE CONFIGURATION: invoke-tasklet-cleanup
+# =====================================================
+# -- ON WINDOWS:
+# run:
+#   echo: true
+#   pty:  false
+#   shell: C:\Windows\System32\cmd.exe
+# =====================================================
+# MAYBE: tasks: auto_dash_names: false
+
+project:
+    name: invoke-tasklet-cleanup
+
+run:
+    echo: true
+
+cleanup:
+    extra_directories:
+      - "build"
+      - "dist"
+
+cleanup_all:
+    extra_directories:
+      - .hypothesis
+      - .pytest_cache

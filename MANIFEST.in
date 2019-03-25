@@ -1,0 +1,28 @@
+include MANIFEST.in
+include README.rst
+# DISABLED: include CHANGES.rst
+# DISABLED: include LICENSE
+include .coveragerc
+include .editorconfig
+include .pylintrc
+include *.cfg
+include *.ini
+include *.py
+include *.rst
+
+recursive-include bin           *.py *.cmd *.sh
+recursive-include lib/python    *.py
+recursive-include examples      *.cpp *.hpp *.txt *.yaml
+recursive-include tests         *.py
+recursive-include tasks         *.py *.zip *.txt *.rst
+recursive-include features      *.feature *.py
+recursive-include py.requirements  *.txt
+# DISABLED: recursive-include docs          *.rst *.txt *.css *.py *.html *.rst-* *.png Makefile
+# DISABLED: recursive-include docs/_themes  *.html *.conf *.css *.css_t LICENSE*
+
+prune .tox
+prune .venv*
+prune __*
+prune tasks/__
+prune examples/library_hello/build*
+prune examples/program_hello/build*
