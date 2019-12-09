@@ -8,7 +8,7 @@
 # =========================================================================
 
 [run]
-source = invoke_tasklet_cleanup
+source = invoke_cleanup
 branch  = True
 parallel = True
 

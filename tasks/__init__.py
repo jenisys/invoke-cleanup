@@ -34,7 +34,7 @@ sys.path.insert(0, HERE)
 from invoke import Collection
 
 # -- TASK-LIBRARY:
-import invoke_tasklet_cleanup as cleanup
+import invoke_cleanup as cleanup
 from . import test
 # DISABLED: from . import release
 

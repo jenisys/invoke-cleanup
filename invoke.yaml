@@ -1,5 +1,5 @@
 # =====================================================
-# INVOKE CONFIGURATION: invoke-tasklet-cleanup
+# INVOKE CONFIGURATION: invoke-cleanup
 # =====================================================
 # -- ON WINDOWS:
 # run:
@@ -8,9 +8,6 @@
 #   shell: C:\Windows\System32\cmd.exe
 # =====================================================
 # MAYBE: tasks: auto_dash_names: false
-
-project:
-    name: invoke-tasklet-cleanup
 
 run:
     echo: true
@@ -24,3 +21,4 @@ cleanup_all:
     extra_directories:
       - .hypothesis
       - .pytest_cache
+      - .idea
