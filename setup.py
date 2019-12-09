@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*
 """
-Setup script for invoke-tasklet-cleanup.
+Setup script for invoke-cleanup.
 
 USAGE:
     python setup.py install
@@ -47,24 +47,29 @@ def find_packages_by_root_package(where):
 # SETUP:
 # -----------------------------------------------------------------------------
 setup(
-    name="invoke-tasklet-cleanup",
+    name="invoke-cleanup",
     version="0.3.0",
     description="Performs cleanup tasks for the ``invoke`` build system",
     long_description=description,
     author="Jens Engel",
     author_email="jenisys@users.noreply.github.com",
-    url="http://github.com/jenisys/invoke-tasklet-cleanup",
-    provides = ["invoke_tasklet_cleanup"],
-    packages = find_packages_by_root_package("invoke_tasklet_cleanup"),
-    # modules = ["invoke_tasklet_cleanup"],
+    url="http://github.com/jenisys/invoke-cleanup",
+    provides = ["invoke_cleanup"],
+    # packages = find_packages_by_root_package("invoke_cleanup"),
+    modules = [
+        "invoke_cleanup",
+        "invoke_dry_run",   # ADD-ON.
+    ],
     # -- REQUIREMENTS:
     # SUPPORT: python2.7, python3.3 (or higher)
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*",
     install_requires=[
         "invoke >= 1.2.0",
-        "path.py >= 11.5.0",
         "six >= 1.12.0",
         "pycmd",
+        # -- HINT: path.py => path (python-install-package was renamed for python3)
+        "path.py >= 11.5.0; python_version <  '3.0'",
+        "path >= 13.1.0;    python_version >= '3.0'",
         "pathlib; python_version < '3.4'",
     ],
     tests_require=[
