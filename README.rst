@@ -1,20 +1,20 @@
-invoke-tasklet-cleanup
+invoke-cleanup
 =============================================================================
 
-.. _`invoke-tasklet-cleanup`: https://github.com/jenisys/invoke-tasklet-cleanup
+.. _`invoke-cleanup`: https://github.com/jenisys/invoke-cleanup
 .. _invoke: https://pyinvoke.org
 
 
-`invoke-tasklet-cleanup`_ provides common cleanup tasks (and simple dry-run support)
+`invoke-cleanup`_ provides common cleanup tasks (and simple dry-run support)
 for the `invoke`_ build system.
 
 `invoke`_ provides a modular build system.
-This means that each module (or namespace) should also provide its ``clean`` or
-``cleanup`` task. But in addition, you often want a common ``cleanup`` task
-that calls somehow the cleanup task in each module. This functionality is provided
-by the `invoke-tasklet-cleanup`_.
+This means that each module (or namespace) can / should also provide its ``clean`` or
+``cleanup`` task. In addition, you often want a common ``cleanup`` task
+that calls somehow the cleanup task in each module.
+This kind of functionality is provided by the `invoke-cleanup`_.
 
-`invoke-tasklet-cleanup`_ provides two tasks and a number of helper functions
+`invoke-cleanup`_ provides two tasks and a number of helper functions
 to simplify the implementation of cleanup tasks.
 
 Tasks (when registered as shown below):
@@ -37,7 +37,7 @@ Module attributes:
 EXAMPLE: Use common cleanup tasks
 ------------------------------------------------------------------------------
 
-The following code snippets show how `invoke-tasklet-cleanup`_ tasks
+The following code snippets show how `invoke-cleanup`_ tasks
 should be used in your own invoke tasks:
 
 .. code-block:: python
@@ -46,7 +46,7 @@ should be used in your own invoke tasks:
     from invoke import Collection, task
 
     # -- USE TASKLET-LIBRARY:
-    import invoke_tasklet_cleanup as cleanup
+    import invoke_cleanup as cleanup
 
     ...     # More tasks here.
 
@@ -91,7 +91,7 @@ that should be executed when the common cleanup tasks are executed.
     # -- FILE: tasks/docs.py
     from __future__ import absolute_import
     from invoke import task, Collection
-    from invoke_tasklet_cleanup import cleanup_tasks, cleanup_dirs
+    from invoke_cleanup import cleanup_tasks, cleanup_dirs
 
     @task
     def clean(ctx, dry_run=False):
