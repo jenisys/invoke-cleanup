@@ -29,6 +29,7 @@ DEFAULT_CONFIG = Config(defaults={
         "interactive": True,
         "force": False,
         "path": ".",
+        "dry_run": False,
     },
 })
 
