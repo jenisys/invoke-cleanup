@@ -58,23 +58,23 @@ setup(
     # packages = find_packages_by_root_package("invoke_cleanup"),
     modules = [
         "invoke_cleanup",
-        "invoke_dry_run",   # ADD-ON.
+        # DISABLED: "invoke_dry_run",   # ADD-ON.
     ],
     # -- REQUIREMENTS:
     # SUPPORT: python2.7, python3.3 (or higher)
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*",
     install_requires=[
-        "invoke >= 1.2.0",
+        "invoke >= 1.3.0",
         "six >= 1.12.0",
         "pycmd",
         # -- HINT: path.py => path (python-install-package was renamed for python3)
-        "path.py >= 11.5.0; python_version <  '3.0'",
-        "path >= 13.1.0;    python_version >= '3.0'",
+        "path.py >= 11.5.0; python_version <  '3.5'",
+        "path >= 13.1.0;    python_version >= '3.5'",
         "pathlib; python_version < '3.4'",
     ],
     tests_require=[
         "pytest <  5.0; python_version < '3.0'",
-        "pytest >= 4.0; python_version >= '3.0'",
+        "pytest >= 5.0; python_version >= '3.0'",
         "pytest-html >= 1.19.0",
         # PREPARED: "behave >= 1.2.6",
         # PREPARED: "PyHamcrest >= 1.9",
