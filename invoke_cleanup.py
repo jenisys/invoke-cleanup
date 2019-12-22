@@ -277,7 +277,7 @@ def git_clean(ctx, path=None, interactive=False, force=False, dry_run=False, opt
     force = force or ctx.config.git_clean.force
     path = path or ctx.config.git_clean.path or "."
     interactive = interactive or ctx.config.git_clean.interactive
-    dry_run = dry_run or ctx.config.run.dry
+    dry_run = dry_run or ctx.config.run.dry or ctx.config.git_clean.dry_run
 
     if interactive:
         args.append("--interactive")
@@ -321,6 +321,7 @@ namespace.configure({
         "interactive": True,
         "force": False,
         "path": ".",
+        "dry_run": False,
     },
 })
 

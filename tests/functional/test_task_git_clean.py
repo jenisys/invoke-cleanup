@@ -92,4 +92,3 @@ class TestGitCleanTask(object):
             assert my_file2.exists(), "OOPS: my_file2 was REMOVED"
         else:
             assert not my_file2.exists(), "OOPS: my_file2 was NOT_REMOVED"
-
