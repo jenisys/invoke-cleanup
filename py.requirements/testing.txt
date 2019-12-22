@@ -10,7 +10,7 @@ pytest-html >= 1.19.0
 
 # DISABLED: PyHamcrest >= 1.9
 # DISABLED: behave >= 1.2.6
-# MAYBE: mock  >= 2.0
+mock >= 2.0
 
 # -- PYTHON2 BACKPORTS:
 backports.shutil_which; python_version <= '3.3'
