@@ -80,9 +80,9 @@ class TestExecuteCleanupTask(object):
             print("CALLED: my_cleanup task (entered)")
             message = "OOPS: my_cleanup fails"
             if error_class is Exit:
-                raise Exit(message, 100)
+                raise Exit(message, code=100)
             else:
-                raise error_class(Result(100), reason=message)
+                raise error_class(Result(message, exited=101))
             print("CALLED: my_cleanup task (exited)")
 
         cleanup_tasks = Collection("cleanup_tasks")
