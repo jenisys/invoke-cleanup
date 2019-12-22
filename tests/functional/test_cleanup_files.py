@@ -4,10 +4,17 @@ Unit tests for :func:`invoke_cleanup.cleanup_files()`.
 """
 
 from __future__ import absolute_import, print_function
-import os
+import sys
 import stat
 from invoke_cleanup import cleanup_files
 import pytest
+
+
+# ---------------------------------------------------------------------------
+# CONSTANTS
+# ---------------------------------------------------------------------------
+python_version = sys.version_info[:2]
+python35 = (3, 5)   # HINT: python3.8 does not raise OSErrors.
 
 
 # ---------------------------------------------------------------------------
@@ -139,9 +146,11 @@ class TestCleanupFiles(object):
         cleanup_files(["**/*.xxx"], tmp_path)
         captured = capsys.readouterr()
         assert my_file1.exists(), "OOPS: my_file1 was removed."
-        assert "OSError" in captured.out
-        assert "Permission denied:" in captured.out
-        assert str(my_file1) in captured.out
+        if python_version < python35:
+            # -- REASON: OSError is not raised for newer py3 versions.
+            assert "OSError" in captured.out
+            assert "Permission denied:" in captured.out
+            assert str(my_file1) in captured.out
 
     def test_without_any_matching_files(self, tmp_path):
         # -- SETUP:
