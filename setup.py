@@ -76,9 +76,10 @@ setup(
         "pytest <  5.0; python_version < '3.0'",
         "pytest >= 5.0; python_version >= '3.0'",
         "pytest-html >= 1.19.0",
+        "mock >= 2.0",
+        "backports.shutil_which; python_version <= '3.3'",
         # PREPARED: "behave >= 1.2.6",
         # PREPARED: "PyHamcrest >= 1.9",
-        # PREPARED: "mock >= 2.0",
     ],
     extras_require={
         # PREPARED: 'docs': ["sphinx >= 1.8", "sphinx_bootstrap_theme >= 0.6"],

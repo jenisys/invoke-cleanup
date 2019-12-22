@@ -5,7 +5,8 @@ Unit tests for :func:`invoke_cleanup.exexecute_cleanup_tasks()`.
 
 from __future__ import absolute_import, print_function
 from invoke_cleanup import execute_cleanup_tasks
-from invoke import task, Collection, MockContext
+from invoke import task, Collection, MockContext, Result
+from invoke import Failure, Exit, UnexpectedExit
 import pytest
 
 
@@ -67,5 +68,31 @@ class TestExecuteCleanupTask(object):
         captured = capsys.readouterr()
         expected = "CLEANUP TASK: my-cleanup"
         assert expected in captured.out
+        assert "CALLED: my_cleanup task (entered)" in captured.out
+        assert "CALLED: my_cleanup task (exited)" not in captured.out
+
+    @pytest.mark.parametrize("error_class", [
+        Failure, Exit, UnexpectedExit,
+    ])
+    def test_with_failing_task_raises_failure_should_be_gracefully_ignored(self, error_class, capsys):
+        @task
+        def my_cleanup(ctx):
+            print("CALLED: my_cleanup task (entered)")
+            message = "OOPS: my_cleanup fails"
+            if error_class is Exit:
+                raise Exit(message, 100)
+            else:
+                raise error_class(Result(100), reason=message)
+            print("CALLED: my_cleanup task (exited)")
+
+        cleanup_tasks = Collection("cleanup_tasks")
+        cleanup_tasks.add_task(my_cleanup, name="my_cleanup")
+        ctx = MockContext()
+
+        execute_cleanup_tasks(ctx, cleanup_tasks)
+        captured = capsys.readouterr()
+        expected = "FAILURE in CLEANUP TASK: my-cleanup (GRACEFULLY-IGNORED)"
+        assert expected in captured.out
+        assert "CLEANUP TASKS: 1 failure(s) occured" in captured.out
         assert "CALLED: my_cleanup task (entered)" in captured.out
         assert "CALLED: my_cleanup task (exited)" not in captured.out

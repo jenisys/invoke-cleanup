@@ -265,10 +265,9 @@ def clean_python(ctx):
     "path": "Path to cleanup.",
     "interactive": "Enable interactive mode.",
     "force": "Enable force mode.",
-    "dry-run": "Enable dry-run mode.",
     "options": "Additional git-clean options",
 })
-def git_clean(ctx, path=None, interactive=True, force=False, options=None):
+def git_clean(ctx, path=None, interactive=False, force=False, dry_run=False, options=None):
     """Perform git-clean command to cleanup the worktree of a git repository.
 
     BEWARE: This may remove any precious files that are not checked in.
@@ -277,7 +276,8 @@ def git_clean(ctx, path=None, interactive=True, force=False, options=None):
     args = []
     force = force or ctx.config.git_clean.force
     path = path or ctx.config.git_clean.path or "."
-    dry_run = ctx.config.run.dry
+    interactive = interactive or ctx.config.git_clean.interactive
+    dry_run = dry_run or ctx.config.run.dry
 
     if interactive:
         args.append("--interactive")
