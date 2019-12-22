@@ -31,8 +31,9 @@ def test_all(ctx, args="", options=""):
 
 
 @task
-def clean(ctx, dry_run=False):
+def clean(ctx):
     """Cleanup (temporary) test artifacts."""
+    dry_run = ctx.config.run.dry
     directories = ctx.test.clean.directories or []
     files = ctx.test.clean.files or []
     cleanup_dirs(directories, dry_run=dry_run)
@@ -191,5 +192,5 @@ namespace.configure({
 })
 
 # -- ADD CLEANUP TASK:
-cleanup_tasks.add_task(clean, "clean_test")
+cleanup_tasks.add_task(clean, name="clean_test")
 cleanup_tasks.configure(namespace.configuration())
