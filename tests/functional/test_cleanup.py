@@ -27,21 +27,28 @@ namespace.add_collection(Collection.from_module(cleanup), name="cleanup")
 {part_2}
 """
 
+
 def make_task_file(dest, part_1=None, part_2=None):
     contents = TASKS_FILE_TEMPLATE.format(part_1=part_1, part_2=part_2)
     # XXX-MORE
+    return NotImplemented
+
 
 # ---------------------------------------------------------------------------
 # TEST SUITE
 # ---------------------------------------------------------------------------
+not_implemented = pytest.mark.skip(reason="Not implemented yet")
+
+@not_implemented
 class TestCleanupTask(object):
     def test_use_with_tasks_file(self, tmp_path):
-        pass
+        return NotImplemented
 
     def test_use_with_tasks_dir(self, tmpdir):
-        pass
+        return NotImplemented
 
 
+@not_implemented
 class TestOwnCleanupTask(object):
     def test_add_cleanup_task(self, tmpdir):
-        pass
+        return NotImplemented

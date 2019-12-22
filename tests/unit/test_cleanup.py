@@ -18,13 +18,17 @@ import pytest
 # ---------------------------------------------------------------------------
 # TEST SUITE
 # ---------------------------------------------------------------------------
+not_implemented = pytest.mark.skip(reason="Not implemented yet")
+
 class TestCleanupTask(object):
+    @not_implemented
     def test_1(self):
         pass
 
+@not_implemented
 class TestCleanupAllTask(object):
     pass
 
-
+@not_implemented
 class TestCleanupFunction(object):
     pass

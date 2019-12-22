@@ -14,17 +14,23 @@ from invoke_cleanup import (
 from invoke import MockContext, Result
 import pytest
 
+not_implemented = pytest.mark.skip(reason="Not implemented yet")
 
 # ---------------------------------------------------------------------------
 # TEST SUITE
 # ---------------------------------------------------------------------------
 class TestCleanupTask(object):
-    def test_1(self):
-        pass
 
+    @not_implemented
+    def test_1(self):
+        return NotImplemented
+
+
+@not_implemented
 class TestCleanupAllTask(object):
     pass
 
 
+@not_implemented
 class TestCleanupFunction(object):
     pass
