@@ -3,10 +3,12 @@
 Provides cleanup tasks for invoke build scripts (as generic invoke tasklet).
 Simplifies writing common, composable and extendable cleanup tasks.
 
-PYTHON PACKAGE REQUIREMENTS:
-* path.py >= 8.2.1  (as path-object abstraction)
+PYTHON PACKAGE DEPENDENCIES:
+
+* path (python >= 3.5) or path.py >= 11.5.0 (as path-object abstraction)
 * pathlib (for ant-like wildcard patterns; since: python > 3.5)
 * pycmd (required-by: clean_python())
+
 
 cleanup task: Add Additional Directories and Files to be removed
 -------------------------------------------------------------------------------
@@ -19,6 +21,8 @@ configuration data:
     # -- FILE: invoke.yaml
     # USE: cleanup.directories, cleanup.files to override current configuration.
     cleanup:
+        # directories: Default directory patterns (can be overwritten).
+        # files:       Default file patterns      (can be ovewritten).
         extra_directories:
             - **/tmp/
         extra_files:
@@ -42,9 +46,10 @@ EXAMPLE::
     from invoke_cleanup import cleanup_tasks, cleanup_dirs
 
     @task
-    def clean(ctx, dry_run=False):
+    def clean(ctx):
         "Cleanup generated documentation artifacts."
-        cleanup_dirs(["build/docs"])
+        dry_run = ctx.config.run.dry
+        cleanup_dirs(["build/docs"], dry_run=dry_run)
 
     namespace = Collection(clean)
     ...
@@ -73,14 +78,11 @@ VERSION = "0.3.1"
 # -----------------------------------------------------------------------------
 # CLEANUP UTILITIES:
 # -----------------------------------------------------------------------------
-def execute_cleanup_tasks(ctx, cleanup_tasks, dry_run=False):
+def execute_cleanup_tasks(ctx, cleanup_tasks):
     """Execute several cleanup tasks as part of the cleanup.
-
-    REQUIRES: ``clean(ctx, dry_run=False)`` signature in cleanup tasks.
 
     :param ctx:             Context object for the tasks.
     :param cleanup_tasks:   Collection of cleanup tasks (as Collection).
-    :param dry_run:         Indicates dry-run mode (bool)
     """
     # pylint: disable=redefined-outer-name
     executor = Executor(cleanup_tasks, ctx.config)
@@ -88,7 +90,7 @@ def execute_cleanup_tasks(ctx, cleanup_tasks, dry_run=False):
     for cleanup_task in cleanup_tasks.tasks:
         try:
             print("CLEANUP TASK: %s" % cleanup_task)
-            executor.execute((cleanup_task, dict(dry_run=dry_run)))
+            executor.execute(cleanup_task)
         except (Exit, Failure, UnexpectedExit) as e:
             print(e)
             print("FAILURE in CLEANUP TASK: %s (GRACEFULLY-IGNORED)" % cleanup_task)
@@ -98,13 +100,13 @@ def execute_cleanup_tasks(ctx, cleanup_tasks, dry_run=False):
         print("CLEANUP TASKS: %d failure(s) occured" % failure_count)
 
 
-def cleanup_dirs(patterns, dry_run=False, workdir="."):
+def cleanup_dirs(patterns, workdir=".", dry_run=False):
     """Remove directories (and their contents) recursively.
     Skips removal if directories does not exist.
 
     :param patterns:    Directory name patterns, like "**/tmp*" (as list).
-    :param dry_run:     Dry-run mode indicator (as bool).
     :param workdir:     Current work directory (default=".")
+    :param dry_run:     Dry-run mode indicator (as bool).
     """
     current_dir = Path(workdir)
     python_basedir = Path(Path(sys.executable).dirname()).joinpath("..").abspath()
@@ -138,13 +140,13 @@ def cleanup_dirs(patterns, dry_run=False, workdir="."):
                     print("RMTREE-FAILED: %s (for: %s)" % (e, directory))
 
 
-def cleanup_files(patterns, dry_run=False, workdir="."):
+def cleanup_files(patterns, workdir=".", dry_run=False):
     """Remove files or files selected by file patterns.
     Skips removal if file does not exist.
 
     :param patterns:    File patterns, like "**/*.pyc" (as list).
-    :param dry_run:     Dry-run mode indicator (as bool).
     :param workdir:     Current work directory (default=".")
+    :param dry_run:     Dry-run mode indicator (as bool).
     """
     current_dir = Path(workdir)
     python_basedir = Path(Path(sys.executable).dirname()).joinpath("..").abspath()
@@ -206,15 +208,16 @@ def path_glob(pattern, current_dir=None):
 # GENERIC CLEANUP TASKS:
 # -----------------------------------------------------------------------------
 @task
-def clean(ctx, dry_run=False):
+def clean(ctx):
     """Cleanup temporary dirs/files to regain a clean state."""
+    dry_run = ctx.config.run.dry
     directories = ctx.config.cleanup.directories or []
     directories.extend(ctx.config.cleanup.extra_directories or [])
     files = ctx.config.cleanup.files or []
     files.extend(ctx.config.cleanup.extra_files or [])
 
     # -- PERFORM CLEANUP:
-    execute_cleanup_tasks(ctx, cleanup_tasks, dry_run=dry_run)
+    execute_cleanup_tasks(ctx, cleanup_tasks)
     cleanup_dirs(directories, dry_run=dry_run)
     cleanup_files(files, dry_run=dry_run)
 
@@ -224,10 +227,11 @@ def clean(ctx, dry_run=False):
 
 
 @task(name="all", aliases=("distclean",))
-def clean_all(ctx, dry_run=False):
+def clean_all(ctx):
     """Clean up everything, even the precious stuff.
     NOTE: clean task is executed last.
     """
+    dry_run = ctx.config.run.dry
     directories = ctx.config.cleanup_all.directories or []
     directories.extend(ctx.config.cleanup_all.extra_directories or [])
     files = ctx.config.cleanup_all.files or []
@@ -237,8 +241,8 @@ def clean_all(ctx, dry_run=False):
     # HINT: Remove now directories, files first before cleanup-tasks.
     cleanup_dirs(directories, dry_run=dry_run)
     cleanup_files(files, dry_run=dry_run)
-    execute_cleanup_tasks(ctx, cleanup_all_tasks, dry_run=dry_run)
-    clean(ctx, dry_run=dry_run)
+    execute_cleanup_tasks(ctx, cleanup_all_tasks)
+    clean(ctx)
 
     # use_cleanup_python = ctx.config.cleanup_all.use_cleanup_python or False
     # if use_cleanup_python:
@@ -246,8 +250,9 @@ def clean_all(ctx, dry_run=False):
 
 
 @task(name="python")
-def clean_python(ctx, dry_run=False):
+def clean_python(ctx):
     """Cleanup python related files/dirs: *.pyc, *.pyo, ..."""
+    dry_run = ctx.config.run.dry
     # MAYBE NOT: "**/__pycache__"
     cleanup_dirs(["build", "dist", "*.egg-info", "**/__pycache__"],
                  dry_run=dry_run)
@@ -263,8 +268,7 @@ def clean_python(ctx, dry_run=False):
     "dry-run": "Enable dry-run mode.",
     "options": "Additional git-clean options",
 })
-def git_clean(ctx, path=None, interactive=True, force=False, dry_run=False,
-              options=None):
+def git_clean(ctx, path=None, interactive=True, force=False, options=None):
     """Perform git-clean command to cleanup the worktree of a git repository.
 
     BEWARE: This may remove any precious files that are not checked in.
@@ -272,8 +276,8 @@ def git_clean(ctx, path=None, interactive=True, force=False, dry_run=False,
     """
     args = []
     force = force or ctx.config.git_clean.force
-    dry_run = dry_run or ctx.config.git_clean.dry_run
     path = path or ctx.config.git_clean.path or "."
+    dry_run = ctx.config.run.dry
 
     if interactive:
         args.append("--interactive")
@@ -315,7 +319,6 @@ namespace.configure({
     ),
     "git_clean": {
         "interactive": True,
-        "dry_run": False,
         "force": False,
         "path": ".",
     },
