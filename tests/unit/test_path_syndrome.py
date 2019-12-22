@@ -8,7 +8,7 @@ import sys
 import pytest
 
 python_version = sys.version_info[:2]
-python38 = (3, 8)   # HINT: python3.8 does not raise OSErrors.
+python35 = (3, 5)   # HINT: python3.8 does not raise OSErrors.
 
 # ---------------------------------------------------------------------------
 # TEST SUITE
@@ -18,7 +18,7 @@ python38 = (3, 8)   # HINT: python3.8 does not raise OSErrors.
 class TestSyndrome(object):
     """Test path syndromes that sometimes occur in weird situations."""
 
-    @pytest.mark.skipif(python_version >= python38, reason="OSError suppressed")
+    # @pytest.mark.skipif(python_version >= python35, reason="OSError suppressed")
     def test_path_glob__with_not_accessible_directory(self, tmp_path, capsys):
         # -- SETUP: Filesystem
         bad_directory = tmp_path / "not_accessible"
@@ -35,9 +35,10 @@ class TestSyndrome(object):
         # -- ACT and VERIFY:
         selected = list(path_glob("**/*.txt", current_dir=tmp_path))
         captured = capsys.readouterr()
-        selected2 = [os.path.relpath(p, str(tmp_path))  for p in selected]
+        selected2 = [os.path.relpath(p, str(tmp_path)) for p in selected]
         assert selected2 == ["hello_1.txt"]
-        assert "OSError: [Errno 13] Permission denied:" in captured.out
+        if python_version < python35:
+            assert "OSError: [Errno 13] Permission denied:" in captured.out
         # -- EXPECT: No OSError exception is raised (only printed).
 
         # -- CLEANUP: Silence pytest cleanup errors
@@ -47,7 +48,7 @@ class TestSyndrome(object):
         bad_directory.rmdir()
         os.removedirs(str(tmp_path))
 
-    @pytest.mark.skipif(python_version >= python38, reason="OSError suppressed")
+    @pytest.mark.skipif(python_version >= python35, reason="OSError suppressed")
     def test_path_glob__with_symlinked_endless_loop(self, tmp_path, capsys):
         """Causes OSError: Recursion limit reached."""
         directory_1 = tmp_path / "d1"
@@ -66,6 +67,8 @@ class TestSyndrome(object):
         # -- ACT and VERIFY:
         selected = list(path_glob("**/*.txt", current_dir=tmp_path))
         captured = capsys.readouterr()
+        selected2 = [os.path.relpath(p, str(tmp_path)) for p in selected]
+        # assert selected2 == ["d1/hello_1.txt"]
         # assert "OSError: [Errno 62] Too many levels of symbolic links:" in captured.out
         assert "OSError: " in captured.out
         assert "Too many levels of symbolic links:" in captured.out
