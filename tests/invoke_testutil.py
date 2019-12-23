@@ -7,6 +7,8 @@ Extended test support for testing with invoke.
 
 from __future__ import absolute_import, print_function
 import subprocess
+
+import six
 from invoke import MockContext
 
 
@@ -51,3 +53,8 @@ def invoke(command):
     run("invoke {0}".format(command))
 
 
+def ensure_text(output, encoding="UTF-8"):
+    # -- HINT: output return by run_with_output returns bytes not text / unicode.
+    if not isinstance(output, six.text_type):
+        output = output.decode(encoding=encoding)
+    return output
