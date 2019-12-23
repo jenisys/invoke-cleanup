@@ -30,7 +30,7 @@ EXPECTED_CLEANUP_FILES = ["**/*.pyc", "**/*.pyo", "**/*$py.class"]
 # ---------------------------------------------------------------------------
 # TEST SUITE
 # ---------------------------------------------------------------------------
-class TestGitCleanTask(object):
+class TestCleanPythonTask(object):
     """Test configuration logic of :func:`clean_python()` tasks with Mocks.
     Therefore, no file removal occurs here.
     """

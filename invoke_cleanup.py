@@ -221,9 +221,9 @@ def path_glob(pattern, current_dir=None):
 def clean(ctx):
     """Cleanup temporary dirs/files to regain a clean state."""
     dry_run = ctx.config.run.dry
-    directories = ctx.config.cleanup.directories or []
+    directories = list(ctx.config.cleanup.directories or [])
     directories.extend(ctx.config.cleanup.extra_directories or [])
-    files = ctx.config.cleanup.files or []
+    files = list(ctx.config.cleanup.files or [])
     files.extend(ctx.config.cleanup.extra_files or [])
 
     # -- PERFORM CLEANUP:
@@ -242,9 +242,9 @@ def clean_all(ctx):
     NOTE: clean task is executed last.
     """
     dry_run = ctx.config.run.dry
-    directories = ctx.config.cleanup_all.directories or []
+    directories = list(ctx.config.cleanup_all.directories or [])
     directories.extend(ctx.config.cleanup_all.extra_directories or [])
-    files = ctx.config.cleanup_all.files or []
+    files = list(ctx.config.cleanup_all.files or [])
     files.extend(ctx.config.cleanup_all.extra_files or [])
 
     # -- PERFORM CLEANUP:
