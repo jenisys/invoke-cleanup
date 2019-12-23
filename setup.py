@@ -48,7 +48,7 @@ def find_packages_by_root_package(where):
 # -----------------------------------------------------------------------------
 setup(
     name="invoke-cleanup",
-    version="0.3.3",
+    version="0.3.4",
     description="Performs cleanup tasks for the ``invoke`` build system",
     long_description=description,
     author="Jens Engel",
