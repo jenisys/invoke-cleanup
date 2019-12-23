@@ -326,7 +326,7 @@ namespace.add_task(clean, default=True)
 namespace.add_task(git_clean)
 namespace.configure({
     "cleanup": make_cleanup_config(
-        files=["*.bak", "*.log", "*.tmp", "**/.DS_Store", "**/*.~*~"],
+        files=["**/*.bak", "**/*.log", "**/*.tmp", "**/.DS_Store"],
     ),
     "cleanup_all": make_cleanup_config(
         directories=[".venv*", ".tox", "downloads", "tmp"],
