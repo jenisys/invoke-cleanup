@@ -29,20 +29,20 @@ sys.path.insert(0, HERE)
 # -----------------------------------------------------------------------------
 # IMPORTS:
 # -----------------------------------------------------------------------------
-# import sys
-# PREPARED: from invoke import task, Collection
-from invoke import Collection
+from invoke import task, Collection
+
+
+# -----------------------------------------------------------------------------
+# TASK-LIBRARY:
+# -----------------------------------------------------------------------------
+import invoke_cleanup as cleanup
+from . import test
+# DISABLED: from . import release
 
 
 # -----------------------------------------------------------------------------
 # TASKS:
 # -----------------------------------------------------------------------------
-# -- TASK-LIBRARY:
-import invoke_cleanup as cleanup
-from . import test
-# DISABLED: from . import release
-
-# -- TASKS:
 # None here.
 
 
@@ -52,13 +52,12 @@ from . import test
 namespace = Collection()
 namespace.add_collection(Collection.from_module(cleanup), name="cleanup")
 namespace.add_collection(Collection.from_module(test))
-# DISABLED: namespace.add_collection(Collection.from_module(docs))
-# DISABLED: namespace.add_collection(Collection.from_module(release))
+namespace.configure({})
 
+# -- INJECT: cleanup configuration into this namespace
+# namespace.configure(cleanup.namespace.configuration())
 cleanup.cleanup_tasks.add_task(cleanup.clean_python)
 
-# -- INJECT: clean configuration into this namespace
-namespace.configure(cleanup.namespace.configuration())
 if sys.platform.startswith("win"):
     # -- OVERRIDE SETTINGS: For platform=win32, ... (Windows)
     from ._compat_shutil import which
