@@ -17,4 +17,4 @@ path.py >= 11.5.0; python_version <  '3.5'
 path >= 13.1.0;    python_version >= '3.5'
 
 # -- PYTHON2 BACKPORTS:
-pathlib; python_version < '3.4'
+pathlib2; python_version < '3.4'

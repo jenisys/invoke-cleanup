@@ -37,9 +37,10 @@ class TestSyndrome(object):
         captured = capsys.readouterr()
         selected2 = [os.path.relpath(p, str(tmp_path)) for p in selected]
         assert selected2 == ["hello_1.txt"]
-        if python_version < python35:
+        if False and python_version < python35:
+            # -- ONLY IF: pathlib backport is used (instead of pathlib2).
             assert "OSError: [Errno 13] Permission denied:" in captured.out
-        # -- EXPECT: No OSError exception is raised (only printed).
+            # -- EXPECT: No OSError exception is raised (only printed).
 
         # -- CLEANUP: Silence pytest cleanup errors
         bad_directory.chmod(0o777) # CLEANUP: Make accesible again
@@ -48,7 +49,7 @@ class TestSyndrome(object):
         bad_directory.rmdir()
         os.removedirs(str(tmp_path))
 
-    @pytest.mark.skipif(python_version >= python35, reason="OSError suppressed")
+    # @pytest.mark.skipif(python_version >= python35, reason="OSError suppressed")
     def test_path_glob__with_symlinked_endless_loop(self, tmp_path, capsys):
         """Causes OSError: Recursion limit reached."""
         directory_1 = tmp_path / "d1"
@@ -70,9 +71,11 @@ class TestSyndrome(object):
         selected2 = [os.path.relpath(p, str(tmp_path)) for p in selected]
         # assert selected2 == ["d1/hello_1.txt"]
         # assert "OSError: [Errno 62] Too many levels of symbolic links:" in captured.out
-        assert "OSError: " in captured.out
-        assert "Too many levels of symbolic links:" in captured.out
-        # -- EXPECT: No OSError exception is raised (only printed).
+        if False:
+            # -- ONLY IF: pathlib backport is used (instead of pathlib2).
+            assert "OSError: " in captured.out
+            assert "Too many levels of symbolic links:" in captured.out
+            # -- EXPECT: No OSError exception is raised (only printed).
 
         # -- CLEANUP: Silence pytest cleanup errors => Remove BAD_SYMLINK-Files.
         file_1.unlink()

@@ -60,13 +60,20 @@ EXAMPLE::
 """
 
 from __future__ import absolute_import, print_function
-import os.path
+import os
 import sys
-import pathlib
 from invoke import task, Collection
 from invoke.executor import Executor
 from invoke.exceptions import Exit, Failure, UnexpectedExit
 from path import Path
+
+# -- PYTHON BACKWARD COMPATIBILITY:
+python_version = sys.version_info[:2]
+python35 = (3, 5)   # HINT: python3.8 does not raise OSErrors.
+if python_version < python35:
+    import pathlib2 as pathlib
+else:
+    import pathlib
 
 
 # -----------------------------------------------------------------------------
@@ -192,16 +199,17 @@ def path_glob(pattern, current_dir=None):
         # -- CASE: string, path.Path (string-like)
         current_dir = pathlib.Path(str(current_dir))
 
-    try:
-        for p in current_dir.glob(pattern):
-            yield Path(str(p))
-    except OSError as e:
-        # -- CORNER-CASE 1: x.glob(pattern) may fail with:
-        # OSError: [Errno 13] Permission denied: <filename>
-        # HINT: Directory lacks excutable permissions for traversal.
-        # -- CORNER-CASE 2: symlinked endless loop
-        # OSError: [Errno 62] Too many levels of symbolic links: <filename>
-        print("{0}: {1}".format(e.__class__.__name__, e))
+    # -- HINT: OSError is no longer raised in pathlib2 or python35.pathlib
+    # try:
+    for p in current_dir.glob(pattern):
+        yield Path(str(p))
+    # except OSError as e:
+    #     # -- CORNER-CASE 1: x.glob(pattern) may fail with:
+    #     # OSError: [Errno 13] Permission denied: <filename>
+    #     # HINT: Directory lacks excutable permissions for traversal.
+    #     # -- CORNER-CASE 2: symlinked endless loop
+    #     # OSError: [Errno 62] Too many levels of symbolic links: <filename>
+    #     print("{0}: {1}".format(e.__class__.__name__, e))
 
 
 # -----------------------------------------------------------------------------
@@ -267,7 +275,8 @@ def clean_python(ctx):
     "force": "Enable force mode.",
     "options": "Additional git-clean options",
 })
-def git_clean(ctx, path=None, interactive=False, force=False, dry_run=False, options=None):
+def git_clean(ctx, path=None, interactive=False, force=False,
+              dry_run=False, options=None):
     """Perform git-clean command to cleanup the worktree of a git repository.
 
     BEWARE: This may remove any precious files that are not checked in.
