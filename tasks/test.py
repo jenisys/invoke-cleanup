@@ -101,8 +101,11 @@ def coverage(ctx, args="", report="report", append=False):
 
     # -- RUN TESTS WITH COVERAGE:
     if pytest_should_run:
+        os.environ["COVERAGE_PROCESS_START"] = os.path.abspath(".coveragerc")
         ctx.run("coverage run {options} -m pytest {args}".format(
             args=pytest_args, options=" ".join(opts)))
+        os.unsetenv("COVERAGE_PROCESS_START")
+        # del os.environ["COVERAGE_PROCESS_START"]
     # if behave_should_run:
     #     behave_options = ctx.behave_test.coverage_options or ""
     #     os.environ["COVERAGE_PROCESS_START"] = os.path.abspath(".coveragerc")
