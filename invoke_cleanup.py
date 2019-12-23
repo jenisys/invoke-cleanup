@@ -231,9 +231,10 @@ def clean(ctx):
     cleanup_dirs(directories, dry_run=dry_run)
     cleanup_files(files, dry_run=dry_run)
 
+    # -- CONFIGURABLE EXTENSION-POINT:
     # use_cleanup_python = ctx.config.cleanup.use_cleanup_python or False
     # if use_cleanup_python:
-    #     clean_python(ctx, dry_run=dry_run)
+    #     clean_python(ctx)
 
 
 @task(name="all", aliases=("distclean",))
@@ -254,15 +255,17 @@ def clean_all(ctx):
     execute_cleanup_tasks(ctx, cleanup_all_tasks)
     clean(ctx)
 
-    # use_cleanup_python = ctx.config.cleanup_all.use_cleanup_python or False
-    # if use_cleanup_python:
-    #     clean_python(ctx, dry_run=dry_run)
+    # -- CONFIGURABLE EXTENSION-POINT:
+    # use_cleanup_python1 = ctx.config.cleanup.use_cleanup_python or False
+    # use_cleanup_python2 = ctx.config.cleanup_all.use_cleanup_python or False
+    # if use_cleanup_python2 and not use_cleanup_python1:
+    #     clean_python(ctx)
 
 
-@task(name="python")
+@task(aliases=["python"])
 def clean_python(ctx):
     """Cleanup python related files/dirs: *.pyc, *.pyo, ..."""
-    dry_run = ctx.config.run.dry
+    dry_run = ctx.config.run.dry or False
     # MAYBE NOT: "**/__pycache__"
     cleanup_dirs(["build", "dist", "*.egg-info", "**/__pycache__"],
                  dry_run=dry_run)

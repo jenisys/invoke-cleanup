@@ -55,7 +55,7 @@ namespace.add_collection(Collection.from_module(test))
 namespace.configure({})
 
 # -- INJECT: cleanup configuration into this namespace
-# namespace.configure(cleanup.namespace.configuration())
+namespace.configure(cleanup.namespace.configuration())
 cleanup.cleanup_tasks.add_task(cleanup.clean_python)
 
 if sys.platform.startswith("win"):
