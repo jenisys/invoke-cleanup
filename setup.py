@@ -77,6 +77,7 @@ setup(
         "pytest >= 5.0; python_version >= '3.0'",
         "pytest-html >= 1.19.0",
         "mock >= 2.0",
+        "coverage >= 4.2",
         "backports.shutil_which; python_version <= '3.3'",
         # PREPARED: "behave >= 1.2.6",
         # PREPARED: "PyHamcrest >= 1.9",
