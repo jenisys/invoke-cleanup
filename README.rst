@@ -5,13 +5,25 @@ invoke-cleanup
 .. _invoke: https://pyinvoke.org
 
 
-`invoke-cleanup`_ provides common cleanup tasks (and simple dry-run support)
-for the `invoke`_ build system.
+`invoke-cleanup`_ provides common cleanup tasks for the `invoke`_ build system.
 
 `invoke`_ provides a modular build system.
-This means that each module (or namespace) can / should also provide its ``clean`` or
-``cleanup`` task. In addition, you often want a common ``cleanup`` task
-that calls somehow the cleanup task in each module.
+
+* This means that each module (or namespace) can / should also provide its
+  ``clean`` or ``cleanup`` task.
+
+* In addition, you often want a common ``cleanup`` task
+  that calls somehow cleans up everything and can call the cleanup task in each module.
+
+Because the *cleanup-everything* functionality is generic and
+the cleanup tasks are often project specific,
+the generic cleanup functionality provides a mechanism that allows the
+specific cleanup tasks to register themselves.
+
+
+Functionality of `invoke-cleanup`_
+------------------------------------------------------------------------------
+
 This kind of functionality is provided by the `invoke-cleanup`_.
 
 `invoke-cleanup`_ provides two tasks and a number of helper functions
@@ -58,12 +70,17 @@ should be used in your own invoke tasks:
     ...
 
 
-EXAMPLE: Override and extend the invoke configuration settings.
+EXAMPLE: Override or extend the invoke configuration settings
+------------------------------------------------------------------------------
+
+The cleanup settings can be overwritten and extended in the config-file:
 
 .. code-block:: yaml
 
     # -- FILE: invoke.yaml
-    # USE: cleanup.directories, cleanup.files to override current configuration.
+    # USE:
+    #   * cleanup.directories, cleanup.files to override current configuration.
+    #   * cleanup.extra_directories, cleanup.extra_files to extend current config.
     cleanup:
         extra_directories:
             - **/tmp/
@@ -80,6 +97,33 @@ EXAMPLE: Override and extend the invoke configuration settings.
         #    - **/*.bak
 
 
+EXAMPLE: Add invoke-cleanup to your invoke tasks
+------------------------------------------------------------------------------
+
+The following examples shows how you can add `invoke-cleanup`_
+to your "tasks.py" file or "tasks/__init__.py" file:
+
+.. code-block:: python
+
+    # -- FILE: tasks.py
+    # -- FILE: tasks/__init__.py
+    from __future__ import absolute_import, print_function
+    from invoke import task, Collection
+    import invoke_cleanup as cleanup
+
+    @task
+    def hello(ctx, name=None):
+        """Hello ..."""
+        print("Hello {}".format(name or "Alice"))
+
+    namespace = Collection(hello)
+    namespace.add_collection(Collection.from_module(cleanup), name="cleanup")
+    namespace.configure({
+        # ...
+    })
+    namespace.configure(cleanup.namespace.configuration())
+
+
 EXAMPLE: Add own, specific cleanup task to common cleanup tasks.
 ------------------------------------------------------------------------------
 
@@ -94,17 +138,21 @@ that should be executed when the common cleanup tasks are executed.
     from invoke_cleanup import cleanup_tasks, cleanup_dirs
 
     @task
-    def clean(ctx, dry_run=False):
+    def clean(ctx):
         """Cleanup generated documentation artifacts."""
-        cleanup_dirs(["build/docs"])
+        dry_run = ctx.config.run.dry
+        cleanup_dirs(["build/docs"], dry_run=dry_run)
 
     namespace = Collection(clean)
     ...
 
     # -- REGISTER CLEANUP TASK:
-    # ENSURE: "clean_docs" is executed when common "cleanup" task is performed.
-    cleanup_tasks.add_task(clean, "clean_docs")
+    # ENSURE: "clean_docs" is executed when "invoke cleanup" task is executed.
+    cleanup_tasks.add_task(clean, name="clean_docs")
     cleanup_tasks.configure(namespace.configuration())
+
+    # -- ALTERNATIVE: cleanup_all_tasks:
+    # Then cleanup task is called with "invoke cleanup.all"
 
 
 .. hint::
@@ -113,4 +161,41 @@ that should be executed when the common cleanup tasks are executed.
 
     * ``invoke docs.clean`` to cleanup only created docs artifacts.
     * ``invoke cleanup`` to perform its cleanup and call other tasks,
-      like ``docs.clean``task, too.
+      like the ``docs.clean``task.
+
+
+EXAMPLE: Use invoke dry-run support
+------------------------------------------------------------------------------
+
+:Since: invoke-1.3.0
+
+A common dry-run support was added in one of the latest versions of `invoke`_.
+This common dry-run mode is supported by `invoke-cleanup`_.
+This allows you to perform **WHAT IF ...*** and allows to inspect
+what occurs when the ``cleanup`` or ``cleanup.all`` task is executed:
+
+.. code-block:: shell
+
+    $ invoke --dry cleanup
+    RMTREE: xxx_dir_1 (dry-run)
+    RMTREE: xxx_dir_2 (dry-run)
+    ...
+    REMOVE: xxx_file_1 (dry-run)
+    REMOVE: xxx_file_2 (dry-run)
+    ...
+    CLEANUP TASK: python
+    CLEANUP TASK: clean-docs
+    ...
+
+    $ invoke --dry cleanup.all
+    RMTREE: xxx_dirall_1 (dry-run)
+    ...
+
+    # -- HINT: Shows WHAT-IF ...
+    #   * No directories or files are removed, only impact is shown.
+    #   * No cleanup tasks are executed, only impact is shown.
+
+.. note::
+
+    The **dry-run mode** is especially useful when you add new cleanup tasks
+    and you are not quite sure that the cleanup task does not clean up too much.
