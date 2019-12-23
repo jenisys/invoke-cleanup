@@ -41,6 +41,12 @@ def run(command):
     print("SUBPROCESS.call: %s" % command)
     subprocess.check_call(command, shell=True)
 
+
+def run_with_output(command):
+    print("SUBPROCESS.call: %s" % command)
+    return subprocess.check_output(command, shell=True)
+
+
 def invoke(command):
     run("invoke {0}".format(command))
 

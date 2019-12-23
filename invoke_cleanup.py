@@ -70,10 +70,10 @@ from path import Path
 # -- PYTHON BACKWARD COMPATIBILITY:
 python_version = sys.version_info[:2]
 python35 = (3, 5)   # HINT: python3.8 does not raise OSErrors.
-if python_version < python35:
+if python_version < python35:   # noqa
     import pathlib2 as pathlib
 else:
-    import pathlib
+    import pathlib              # noqa
 
 
 # -----------------------------------------------------------------------------
@@ -122,12 +122,14 @@ def cleanup_dirs(patterns, workdir=".", dry_run=False):
         for directory in path_glob(dir_pattern, current_dir):
             directory2 = directory.abspath()
             if sys.executable.startswith(directory2):
+                # -- PROTECT VIRTUAL ENVIRONMENT (currently in use):
                 # pylint: disable=line-too-long
                 print("SKIP-SUICIDE: '%s' contains current python executable" % directory)
                 continue
             elif directory2.startswith(python_basedir):
-                # -- PROTECT CURRENTLY USED VIRTUAL ENVIRONMENT:
-                if warn2_counter <= 4:
+                # -- PROTECT VIRTUAL ENVIRONMENT (currently in use):
+                # HINT: Limit noise in DIAGNOSTIC OUTPUT to X messages.
+                if warn2_counter <= 4:  # noqa
                     print("SKIP-SUICIDE: '%s'" % directory)
                 warn2_counter += 1
                 continue
@@ -162,7 +164,7 @@ def cleanup_files(patterns, workdir=".", dry_run=False):
     for file_pattern in patterns:
         for file_ in path_glob(file_pattern, current_dir):
             if file_.abspath().startswith(python_basedir):
-                # -- PROTECT CURRENTLY USED VIRTUAL ENVIRONMENT:
+                # -- PROTECT VIRTUAL ENVIRONMENT (currently in use):
                 continue
             if not file_.isfile():
                 print("REMOVE: %s (SKIPPED: Not a file)" % file_)
@@ -180,7 +182,7 @@ def cleanup_files(patterns, workdir=".", dry_run=False):
                     error_count += 1
                     if not error_message:
                         error_message = message
-    if False and error_message:
+    if False and error_message: # noqa
         class CleanupError(RuntimeError):
             pass
         raise CleanupError(error_message)
@@ -193,7 +195,7 @@ def path_glob(pattern, current_dir=None):
     :param current_dir:  Current working directory (as Path, pathlib.Path, str)
     :return Resolved Path (as path.Path).
     """
-    if not current_dir:
+    if not current_dir: # noqa
         current_dir = pathlib.Path.cwd()
     elif not isinstance(current_dir, pathlib.Path):
         # -- CASE: string, path.Path (string-like)
@@ -355,6 +357,8 @@ def config_add_cleanup_files(files):
     # pylint: disable=protected-access
     the_cleanup_files = namespace._configuration["cleanup"]["files"]
     the_cleanup_files.extend(files)
+    # namespace.configure({"cleanup": {"files": files}})
+    # print("DIAG cleanup.config.cleanup: %r" % namespace.configuration())
 
 def config_add_cleanup_all_dirs(directories):
     # pylint: disable=protected-access

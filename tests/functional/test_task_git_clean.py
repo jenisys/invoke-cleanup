@@ -7,10 +7,7 @@ from __future__ import absolute_import, print_function
 from invoke import Config, Context
 from invoke.util import cd
 from invoke_cleanup import git_clean
-from pathlib import Path
 import pytest
-
-from tests.shell_util import has_program
 
 
 # ---------------------------------------------------------------------------
@@ -18,6 +15,8 @@ from tests.shell_util import has_program
 # ---------------------------------------------------------------------------
 from tests.workdir_util import setup_workdir
 from tests.invoke_testutil import run
+from tests.shell_util import has_program
+
 
 DEFAULT_CONFIG = Config(defaults={
     "run": {
@@ -62,6 +61,7 @@ class TestGitCleanTask(object):
         assert my_file2.exists() and my_file2.is_file()
 
         # -- EXECUTE AND VERIFY:
+        Path = tmp_path.__class__
         git_clean_dry_run = (mode == "dry_run")
         curdir = Path(".").resolve()
         with cd(str(tmp_path)):
