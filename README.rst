@@ -105,7 +105,6 @@ The cleanup settings can be overwritten and extended in the config-file:
 
     For example, use ``**/*.txt`` to search for all text files (``*.txt``)
     within the current directory and below.
-
     The normal search pattern ``*.txt`` applies only to the current
     (or one) directory.
 
@@ -117,7 +116,7 @@ EXAMPLE: Add invoke-cleanup to your invoke tasks
 ------------------------------------------------------------------------------
 
 The following examples shows how you can add `invoke-cleanup`_
-to your "tasks.py" file or "tasks/__init__.py" file:
+to your ``tasks.py`` file or ``tasks/__init__.py`` file (in your tasks directory):
 
 .. code-block:: python
 
@@ -177,7 +176,7 @@ that should be executed when the common cleanup tasks are executed.
 
     * ``invoke docs.clean`` to cleanup only created docs artifacts.
     * ``invoke cleanup`` to perform its cleanup and call other tasks,
-      like the ``docs.clean``task.
+      like the ``docs.clean`` task.
 
 
 EXAMPLE: Use invoke dry-run support
@@ -187,7 +186,7 @@ EXAMPLE: Use invoke dry-run support
 
 A common dry-run support was added in one of the latest versions of `invoke`_.
 This common dry-run mode is supported by `invoke-cleanup`_.
-This allows you to perform **WHAT IF ...*** and allows to inspect
+This allows you to ask **WHAT IF ...** questions and allows to inspect
 what occurs when the ``cleanup`` or ``cleanup.all`` task is executed:
 
 .. code-block:: shell
