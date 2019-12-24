@@ -13,7 +13,7 @@ invoke-cleanup
   ``clean`` or ``cleanup`` task.
 
 * In addition, you often want a common ``cleanup`` task
-  that calls somehow cleans up everything and can call the cleanup task in each module.
+  that somehow cleans up everything and can call the cleanup task in each module.
 
 Because the *cleanup-everything* functionality is generic and
 the cleanup tasks are often project specific,
@@ -24,7 +24,7 @@ specific cleanup tasks to register themselves.
 Functionality of `invoke-cleanup`_
 ------------------------------------------------------------------------------
 
-This kind of functionality is provided by the `invoke-cleanup`_.
+This following functionality is provided by the `invoke-cleanup`_.
 
 `invoke-cleanup`_ provides two tasks and a number of helper functions
 to simplify the implementation of cleanup tasks.
@@ -46,15 +46,15 @@ Module attributes:
 
 
 
-EXAMPLE: Use common cleanup tasks
+EXAMPLE: Use invoke-cleanup for common cleanup tasks
 ------------------------------------------------------------------------------
 
-The following code snippets show how `invoke-cleanup`_ tasks
-should be used in your own invoke tasks:
+The following code snippet show how `invoke-cleanup`_ tasks
+can used in your own invoke tasks file or tasks directory:
 
 .. code-block:: python
 
-    # -- FILE: tasks/__init__.py or tasks.py
+    # -- FILE: tasks.py or tasks/__init__.py
     from invoke import Collection, task
 
     # -- USE TASKLET-LIBRARY:
@@ -95,6 +95,22 @@ The cleanup settings can be overwritten and extended in the config-file:
         # OR: extra_files:
         #    - **/*.log
         #    - **/*.bak
+
+
+.. note:: Search patterns ``**/*.<suffix>`` vs ``*.<suffix>``
+
+    `Ant`_ like search patterns ``**/*.<suffix>`` are used
+    to search for file or directories in a directory tree
+    (provide by the `pathlib`_ module).
+
+    For example, use ``**/*.txt`` to search for all text files (``*.txt``)
+    within the current directory and below.
+
+    The normal search pattern ``*.txt`` applies only to the current
+    (or one) directory.
+
+.. _Ant: https://ant.apache.org/
+.. _pathlib: https://docs.python.org/3/library/pathlib.html#basic-use
 
 
 EXAMPLE: Add invoke-cleanup to your invoke tasks
