@@ -23,6 +23,7 @@ DEFAULT_CONFIG = Config(defaults={
     },
 })
 
+DEFAULT_KWARGS = dict(workdir=".", verbose=False)
 EXPECTED_CLEANUP_DIRS = ["build", "dist", "*.egg-info", "**/__pycache__"]
 EXPECTED_CLEANUP_FILES = ["**/*.pyc", "**/*.pyo", "**/*$py.class"]
 
@@ -48,8 +49,8 @@ class TestCleanPythonTask(object):
 
 
         clean_python(ctx)
-        mock_cleanup_dirs.assert_called_once_with(EXPECTED_CLEANUP_DIRS, dry_run=False)
-        mock_cleanup_files.assert_called_once_with(EXPECTED_CLEANUP_FILES, dry_run=False)
+        mock_cleanup_dirs.assert_called_once_with(EXPECTED_CLEANUP_DIRS, dry_run=False, **DEFAULT_KWARGS)
+        mock_cleanup_files.assert_called_once_with(EXPECTED_CLEANUP_FILES, dry_run=False, **DEFAULT_KWARGS)
         # mock_invoke_run.assert_called_once_with("py.cleanup")
 
     def test_dryrun_mode(self, monkeypatch):
@@ -64,7 +65,7 @@ class TestCleanPythonTask(object):
         monkeypatch.setattr("invoke_cleanup.cleanup_files", mock_cleanup_files)
 
         clean_python(ctx)
-        mock_cleanup_dirs.assert_called_once_with(EXPECTED_CLEANUP_DIRS, dry_run=True)
-        mock_cleanup_files.assert_called_once_with(EXPECTED_CLEANUP_FILES, dry_run=True)
+        mock_cleanup_dirs.assert_called_once_with(EXPECTED_CLEANUP_DIRS, dry_run=True, **DEFAULT_KWARGS)
+        mock_cleanup_files.assert_called_once_with(EXPECTED_CLEANUP_FILES, dry_run=True, **DEFAULT_KWARGS)
         # assert mock_invoke_run.called == 0, "OOPS: ctx.run() was called"
 

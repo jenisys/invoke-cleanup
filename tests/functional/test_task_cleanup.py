@@ -64,6 +64,8 @@ namespace.configure(cleanup.namespace.configuration())
 #     return contents
 
 
+HERE = os.path.dirname(__file__)
+TOPDIR = os.path.abspath(os.path.join(HERE, "..", ".."))
 COVERAGE_ENABLED = bool(os.environ.get("COVERAGE_PROCESS_START"))
 
 @contextmanager
@@ -89,6 +91,27 @@ def use_subprocess_coverage(workdir=None):
         # XXX-CHECK-IF-NEEDED.END
         print("COVERAGE.use_subprocess_coverage.DISABLED")
 
+@contextmanager
+def use_setup_python_path(module_dir=None):
+    if module_dir is None:
+        module_dir = TOPDIR
+    module_under_test = os.path.join(module_dir, "invoke_cleanup.py")
+    assert os.path.exists(module_under_test)
+    initial_path = os.environ.get("PYTHONPATH")
+    os.environ["PYTHONPATH"] = os.pathsep.join([".", os.path.abspath(module_dir)])
+    yield
+    # -- CLEANUP and RESTORE:
+    if initial_path:
+        os.environ["PYTHONPATH"] = initial_path
+
+
+def run_with_output_in_directory(directory):
+    with use_subprocess_coverage(directory):
+        with use_setup_python_path():
+            with cd(str(directory)):
+                output = ensure_text(run_with_output("invoke cleanup"))
+    return output
+
 
 # ---------------------------------------------------------------------------
 # TEST MARKERS
@@ -96,6 +119,7 @@ def use_subprocess_coverage(workdir=None):
 xfail = pytest.mark.xfail()
 not_implemented = pytest.mark.skip(reason="Not implemented yet")
 not_necessary = pytest.mark.skip(reason="Not necessary")
+
 
 
 # ---------------------------------------------------------------------------
@@ -121,9 +145,7 @@ class TestCleanupTask(object):
         assert not config_file.exists()
 
         # -- EXECUTE AND VERIFY:
-        with use_subprocess_coverage(tmp_path):
-            with cd(str(tmp_path)):
-                output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert not my_file1.exists()
         assert not my_file2.exists()
@@ -161,9 +183,7 @@ cleanup:
 """)
 
         # -- EXECUTE AND VERIFY:
-        with use_subprocess_coverage(tmp_path):
-            with cd(str(tmp_path)):
-                output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert my_file0.exists(), "OOPS: DEFAULT:cleanup.files pattern was not OVERWRITTEN"
         assert not my_file1.exists()
@@ -196,9 +216,7 @@ cleanup:
 """)
 
         # -- EXECUTE AND VERIFY:
-        with use_subprocess_coverage(tmp_path):
-            with cd(str(tmp_path)):
-                output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert not my_dir1.exists()
         assert not my_dir2.exists()
@@ -232,9 +250,7 @@ cleanup:
 """)
 
         # -- EXECUTE AND VERIFY:
-        with use_subprocess_coverage(tmp_path):
-            with cd(str(tmp_path)):
-                output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert not my_file0.exists(), "OOPS: DEFAULT:cleanup.files was NOT_REMOVED"
         assert not my_file1.exists()
@@ -268,9 +284,7 @@ cleanup:
 """)
 
         # -- EXECUTE AND VERIFY:
-        with use_subprocess_coverage(tmp_path):
-            with cd(str(tmp_path)):
-                output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert not my_dir1.exists()
         assert not my_dir2.exists()
@@ -304,9 +318,7 @@ cleanup_tasks.configure(namespace.configuration())
 """)
 
         # -- EXECUTE AND VERIFY:
-        with use_subprocess_coverage(tmp_path):
-            with cd(str(tmp_path)):
-                output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         expected1 = "CLEANUP TASK: foo-clean"
         expected2 = "CALLED: foo_clean"
@@ -346,9 +358,7 @@ cleanup_tasks.configure(namespace.configuration())
 """)
 
         # -- EXECUTE AND VERIFY:
-        with use_subprocess_coverage(tmp_path):
-            with cd(str(tmp_path)):
-                output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert not my_file1.exists()
         assert not my_file2.exists()
@@ -390,8 +400,7 @@ cleanup_tasks.configure(namespace.configuration())
 """)
 
         # -- EXECUTE AND VERIFY:
-        with cd(str(tmp_path)):
-            output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert not my_dir1.exists()
         assert not my_dir2.exists()
@@ -427,8 +436,7 @@ config_add_cleanup_files(["**/*.xxx", "one.xxx"])
 """)
 
         # -- EXECUTE AND VERIFY:
-        with cd(str(tmp_path)):
-            output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert not my_file1.exists()
         assert not my_file2.exists()
@@ -464,8 +472,7 @@ config_add_cleanup_dirs(["**/*.xxx", "one.xxx"])
 """)
 
         # -- EXECUTE AND VERIFY:
-        with cd(str(tmp_path)):
-            output = ensure_text(run_with_output("invoke cleanup"))
+        output = run_with_output_in_directory(tmp_path)
 
         assert not my_dir1.exists()
         assert not my_dir2.exists()

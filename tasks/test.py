@@ -74,19 +74,17 @@ def pytest(ctx, args="", options=""):
 #             behave=behave_cmd, format=format, options=options, args=group_args))
 
 
-@task(help={
-    "args":     "Tests to run (empty: all)",
-    "report":   "Coverage report format to use (report, html, xml)",
+@task(iterable=["args", "report"],
+    help={
+        "args":   "Tests to run (empty: all)",
+        "report": "Coverage report format(s) to use (report, html, xml; many)",
 })
 def coverage(ctx, args="", report="report", append=False):
     """Determine test coverage (run pytest, behave)"""
     append = append or ctx.coverage.append
-    report_formats = ctx.coverage.report_formats or []
-    if report not in report_formats:
-        report_formats.insert(0, report)
-    opts = []
+    coverage_options = []
     if append:
-        opts.append("--append")
+        coverage_options.append("--append")
 
     pytest_args = select_by_prefix(args, ctx.pytest.scopes)
     pytest_should_run = not args or (args and pytest_args)
@@ -103,7 +101,7 @@ def coverage(ctx, args="", report="report", append=False):
     if pytest_should_run:
         os.environ["COVERAGE_PROCESS_START"] = os.path.abspath(".coveragerc")
         ctx.run("coverage run {options} -m pytest {args}".format(
-            args=pytest_args, options=" ".join(opts)))
+            args=pytest_args, options=" ".join(coverage_options)))
         os.unsetenv("COVERAGE_PROCESS_START")
         # del os.environ["COVERAGE_PROCESS_START"]
     # if behave_should_run:
@@ -113,6 +111,24 @@ def coverage(ctx, args="", report="report", append=False):
     #     del os.environ["COVERAGE_PROCESS_START"]
 
     # -- POST-PROCESSING:
+    coverage_report(ctx, report=report)
+    # ctx.run("coverage combine")
+    # for report_format in report_formats:
+    #     ctx.run("coverage {report_format}".format(report_format=report_format))
+
+
+@task(name="report", aliases=["coverage-report"],
+      iterable=["report"],
+      help={
+        "report": "Coverage report format(s) to use (report, html, xml; many)",
+})
+def coverage_report(ctx, report=None):
+    """Generate test-coverage report(s)."""
+    reports = report
+    report_formats = reports or ctx.coverage.report_formats or []
+    # if report not in report_formats:
+    #     report_formats.insert(0, report)
+
     ctx.run("coverage combine")
     for report_format in report_formats:
         ctx.run("coverage {report_format}".format(report_format=report_format))
@@ -159,7 +175,7 @@ def grouped_by_prefix(args, prefixes):
 # ---------------------------------------------------------------------------
 # TASK MANAGEMENT / CONFIGURATION
 # ---------------------------------------------------------------------------
-namespace = Collection(clean, unittest, pytest, coverage)
+namespace = Collection(clean, unittest, pytest, coverage, coverage_report)
 namespace.add_task(test_all, default=True)
 namespace.configure({
     "test": {

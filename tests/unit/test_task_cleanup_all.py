@@ -5,8 +5,7 @@ Unit tests for :func:`invoke_cleanup.clean()` task.
 
 from __future__ import absolute_import, print_function
 from invoke import Config, Collection, Result
-from invoke import Failure, Exit, UnexpectedExit
-from invoke_cleanup import clean_all, cleanup_all_tasks
+from invoke_cleanup import clean_all
 from invoke_cleanup import execute_cleanup_tasks, \
     cleanup_dirs, cleanup_files, make_cleanup_config
 from tests.invoke_testutil import EchoMockContext
@@ -30,6 +29,7 @@ DEFAULT_CONFIG = Config(defaults={
     ),
 })
 
+DEFAULT_KWARGS = dict(workdir=".", verbose=False)
 
 # ---------------------------------------------------------------------------
 # TEST SUITE
@@ -52,29 +52,34 @@ class TestCleanAllTask(object):
 
         mock_cleanup_dirs = create_autospec(cleanup_dirs)
         mock_cleanup_files = create_autospec(cleanup_files)
-        mock_execute_cleanup_tasks = create_autospec(execute_cleanup_tasks)
+        mock_execute_cleanup_tasks = create_autospec(execute_cleanup_tasks,
+                                                     side_effect=execute_cleanup_tasks)
         mock_clean_task = create_autospec(clean_all)
+        the_cleanup_tasks = Collection(mock_clean_task)
         monkeypatch.setattr("invoke_cleanup.clean", mock_clean_task)
         monkeypatch.setattr("invoke_cleanup.cleanup_dirs", mock_cleanup_dirs)
         monkeypatch.setattr("invoke_cleanup.cleanup_files", mock_cleanup_files)
-        monkeypatch.setattr("invoke_cleanup.execute_cleanup_tasks",
-                            mock_execute_cleanup_tasks)
+        monkeypatch.setattr("invoke_cleanup.execute_cleanup_tasks", mock_execute_cleanup_tasks)
+        monkeypatch.setattr("invoke_cleanup.cleanup_tasks", the_cleanup_tasks)
 
         mock_other_cleanup_task = create_autospec(clean_all)
         mock_other_cleanup_task.name = "other_cleanup2"
-        the_cleanup_tasks = Collection(mock_other_cleanup_task)
-        monkeypatch.setattr("invoke_cleanup.cleanup_all_tasks", the_cleanup_tasks)
+        the_cleanup_all_tasks = Collection(mock_other_cleanup_task)
+        monkeypatch.setattr("invoke_cleanup.cleanup_all_tasks", the_cleanup_all_tasks)
 
         # -- EXECUTE and VERIFY:
         # pylint: disable=line-too-long
         clean_all(ctx)
         expected_cleanup_dirs = ["BUILD", "DIST"]
         expected_cleanup_files = ["**/*.BAK", "**/*.LOG"]
-        mock_execute_cleanup_tasks.assert_called_once_with(ctx, the_cleanup_tasks)
-        mock_cleanup_dirs.assert_called_once_with(expected_cleanup_dirs, dry_run=dry_run)
-        mock_cleanup_files.assert_called_once_with(expected_cleanup_files, dry_run=dry_run)
-        mock_clean_task.assert_called_once_with(ctx)
-        # mock_other_cleanup_task.assert_called_once_with(ctx)
+        mock_execute_cleanup_tasks.assert_called_once_with(ctx, the_cleanup_all_tasks)
+        mock_cleanup_dirs.assert_called_once_with(expected_cleanup_dirs, dry_run=dry_run, **DEFAULT_KWARGS)
+        mock_cleanup_files.assert_called_once_with(expected_cleanup_files, dry_run=dry_run, **DEFAULT_KWARGS)
+        mock_clean_task.assert_called_once()
+        mock_other_cleanup_task.assert_called_once()
+        # DISABLED: mock_clean_task.assert_called_once_with(ctx)
+        # DISABLED: mock_other_cleanup_task.assert_called_once_with(ctx)
+
 
     def test_calls_cleanup_all_tasks(self, monkeypatch):
         mock_other_cleanup_task1 = create_autospec(clean_all)
@@ -132,8 +137,8 @@ class TestCleanAllTaskExtensionPoint(object):
         # pylint: disable=line-too-long
         clean_all(ctx)
         expected_cleanup_dirs = ["build", "other", "extra_build"]
-        mock_cleanup_dirs.assert_called_once_with(expected_cleanup_dirs, dry_run=False)
-        mock_clean_task.assert_called_once_with(ctx)
+        mock_cleanup_dirs.assert_called_once_with(expected_cleanup_dirs, dry_run=False, **DEFAULT_KWARGS)
+        mock_clean_task.assert_called_once_with(ctx, workdir=".", verbose=False)
 
     def test_can_add_own_cleanup_files(self, monkeypatch):
         from invoke_cleanup import clean
@@ -154,5 +159,5 @@ class TestCleanAllTaskExtensionPoint(object):
         # pylint: disable=line-too-long
         clean_all(ctx)
         expected_cleanup_files = ["*.file", "other_file", "*.extra_file"]
-        mock_cleanup_files.assert_called_once_with(expected_cleanup_files, dry_run=False)
-        mock_clean_task.assert_called_once_with(ctx)
+        mock_cleanup_files.assert_called_once_with(expected_cleanup_files, dry_run=False, **DEFAULT_KWARGS)
+        mock_clean_task.assert_called_once_with(ctx, workdir=".", verbose=False)

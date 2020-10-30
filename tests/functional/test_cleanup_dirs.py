@@ -6,6 +6,7 @@ Unit tests for :func:`invoke_cleanup.cleanup_files()`.
 from __future__ import absolute_import, print_function
 import stat
 from invoke_cleanup import cleanup_dirs
+from invoke.util import cd
 import pytest
 
 
@@ -21,13 +22,11 @@ from tests.path_util import \
 # ---------------------------------------------------------------------------
 # TEST SUITE
 # ---------------------------------------------------------------------------
-not_implemented = pytest.mark.skip(reason="Not implemented yet")
-
-
+# NOT NEEDED: not_implemented = pytest.mark.skip(reason="Not implemented yet")
 class TestCleanupDirs(object):
     """Test :func:`invoke_cleanup.cleanup_files()` function."""
 
-    def test_with_one_pattern_in_curdir(self, tmp_path):
+    def test_without_workdir_param_uses_current_directory(self, tmp_path):
         # -- SETUP:
         setup_workdir(tmp_path, [
             "one.xxx/.ignored",
@@ -42,12 +41,35 @@ class TestCleanupDirs(object):
         assert my_dir3.exists() and my_dir3.is_dir()
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["*.xxx"], tmp_path)
+        cwd = tmp_path
+        with cd(str(cwd)):  # -- STRING-CONVERSION (needed for: python2.7)
+            cleanup_dirs(["*.xxx"])
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert not my_dir2.exists(), "OOPS: my_dir2 was NOT_REMOVED"
         assert my_dir3.exists(), "OOPS: my_dir3 was REMOVED"
 
-    def test_with_one_pattern_in_curdir_subtree(self, tmp_path):
+    def test_with_one_pattern_in_current_workdir(self, tmp_path):
+        # -- SETUP:
+        setup_workdir(tmp_path, [
+            "one.xxx/.ignored",
+            "two.xxx/.ignored",
+            "more/ignored.xxx/.ignored"
+        ])
+        my_dir1 = tmp_path/"one.xxx"
+        my_dir2 = tmp_path/"two.xxx"
+        my_dir3 = tmp_path/"more/ignored.xxx"
+        assert my_dir1.exists() and my_dir1.is_dir()
+        assert my_dir2.exists() and my_dir2.is_dir()
+        assert my_dir3.exists() and my_dir3.is_dir()
+
+        # -- EXECUTE AND VERIFY:
+        cwd = tmp_path
+        cleanup_dirs(["*.xxx"], cwd)
+        assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
+        assert not my_dir2.exists(), "OOPS: my_dir2 was NOT_REMOVED"
+        assert my_dir3.exists(), "OOPS: my_dir3 was REMOVED"
+
+    def test_with_one_pattern_in_current_workdir_subtree(self, tmp_path):
         # -- SETUP:
         setup_workdir(tmp_path, [
             "one.xxx/.ignored",
@@ -59,8 +81,26 @@ class TestCleanupDirs(object):
         assert my_dir2.exists() and my_dir2.is_dir()
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["**/*.xxx"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], cwd)
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
+        assert not my_dir2.exists(), "OOPS: my_dir2 was NOT_REMOVED"
+
+    def test_with_one_pattern_in_other_workdir_subtree(self, tmp_path):
+        # -- SETUP:
+        setup_workdir(tmp_path, [
+            "one.xxx/.ignored",
+            "other/two.xxx/.ignored"
+        ])
+        my_dir1 = tmp_path/"one.xxx"
+        my_dir2 = tmp_path/"other/two.xxx"
+        assert my_dir1.exists() and my_dir1.is_dir()
+        assert my_dir2.exists() and my_dir2.is_dir()
+
+        # -- EXECUTE AND VERIFY:
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], workdir=cwd/"other")
+        assert my_dir1.exists(), "OOPS: my_dir1 was REMOVED"
         assert not my_dir2.exists(), "OOPS: my_dir2 was NOT_REMOVED"
 
     def test_with_two_patterns(self, tmp_path):
@@ -75,7 +115,8 @@ class TestCleanupDirs(object):
         assert my_dir2.exists() and my_dir2.is_dir()
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["**/*.xxx/", "**/*.zzz/"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx/", "**/*.zzz/"], cwd)
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert not my_dir2.exists(), "OOPS: my_dir2 was NOT_REMOVED"
 
@@ -91,7 +132,8 @@ class TestCleanupDirs(object):
         assert my_dir2.exists() and my_dir2.is_dir()
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["**/*.xxx"], tmp_path, dry_run=True)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], cwd, dry_run=True)
         assert my_dir1.exists(), "OOPS: my_dir1 was REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
 
@@ -117,7 +159,8 @@ class TestCleanupDirs(object):
         assert path_is_readonly(readonly_dir)
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["**/*.xxx"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], cwd)
         captured = capsys.readouterr()
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
@@ -149,7 +192,8 @@ class TestCleanupDirs(object):
         assert not path_is_executable(no_permission_dir)
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["**/*.xxx"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], cwd)
         captured = capsys.readouterr()
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
@@ -179,7 +223,8 @@ class TestCleanupDirs(object):
         assert path_is_readonly(readonly_dir)
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["**/*.xxx"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], cwd)
         captured = capsys.readouterr()
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
@@ -211,7 +256,8 @@ class TestCleanupDirs(object):
         assert not path_is_executable(no_permission_dir)
 
         # -- EXECUTE AND CLEANUP:
-        cleanup_dirs(["**/*.xxx"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], cwd)
         captured = capsys.readouterr()
         no_permission_dir.chmod(no_permission_initial_mode)
 
@@ -234,7 +280,8 @@ class TestCleanupDirs(object):
         assert my_dir2.exists() and my_dir2.is_dir()
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["**/*.OTHER"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.OTHER"], cwd)
         assert my_dir1.exists(), "OOPS: my_dir1 was REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
 
@@ -250,11 +297,11 @@ class TestCleanupDirs(object):
         assert my_dir2.exists() and my_dir2.is_dir()
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["more/two.xxx"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["more/two.xxx"], cwd)
         assert my_dir1.exists(), "OOPS: my_dir1 was REMOVED"
         assert not my_dir2.exists(), "OOPS: my_dir2 was NOT REMOVED"
 
-    # @not_implemented
     def test_with_matching_file__should_skip_remove(self, tmp_path, capsys):
         # -- SETUP:
         setup_workdir(tmp_path, [
@@ -267,9 +314,36 @@ class TestCleanupDirs(object):
         assert my_file2.exists() and my_file2.is_file()
 
         # -- EXECUTE AND VERIFY:
-        cleanup_dirs(["**/*.xxx"], tmp_path)
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], cwd)
         captured = capsys.readouterr()
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert my_file2.exists(), "OOPS: my_file2 was REMOVED"
+
+        # -- ONLY IN NON-VERBOSE MODE:
+        expected1 = "RMTREE: {0}".format(my_file2)
+        expected2 = "REMOVE: {0}".format(my_file2)
+        assert expected1 not in captured.out
+        assert expected2 not in captured.out
+
+    def test_with_matching_file__should_skip_remove_and_showit_in_verbose_mode(self, tmp_path, capsys):
+        # -- SETUP:
+        setup_workdir(tmp_path, [
+            "one.xxx/.ignored",
+            "more/two.xxx"
+        ])
+        my_dir1 = tmp_path/"one.xxx"
+        my_file2 = tmp_path/"more/two.xxx"
+        assert my_dir1.exists() and my_dir1.is_dir()
+        assert my_file2.exists() and my_file2.is_file()
+
+        # -- EXECUTE AND VERIFY:
+        cwd = tmp_path
+        cleanup_dirs(["**/*.xxx"], cwd, verbose=True)
+        captured = capsys.readouterr()
+        assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
+        assert my_file2.exists(), "OOPS: my_file2 was REMOVED"
+
+        # -- ONLY IN VERBOSE MODE:
         expected = "RMTREE: {0} (SKIPPED: Not a directory)".format(my_file2)
         assert expected in captured.out
