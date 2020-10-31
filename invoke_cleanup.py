@@ -109,7 +109,40 @@ def execute_cleanup_tasks(ctx, cleanup_tasks, workdir=".", verbose=False):
         print("CLEANUP TASKS: %d failure(s) occured" % failure_count)
 
 
-def cleanup_dirs(patterns, workdir=".", dry_run=False, verbose=False, show_skipped=False):
+def make_excluded(excluded, config_dir=None, workdir=None):
+    workdir = workdir or Path.getcwd()
+    config_dir = config_dir or workdir
+    workdir = Path(workdir)
+    config_dir = Path(config_dir)
+
+    excluded2 = []
+    for p in excluded:
+        assert p, "REQUIRE: non-empty"
+        p = Path(p)
+        if p.isabs():
+            excluded2.append(p.normpath())
+        else:
+            # -- RELATIVE PATH:
+            # Described relative to config_dir.
+            # Recompute it relative to current workdir.
+            p = Path(config_dir)/p
+            p = workdir.relpathto(p)
+            excluded2.append(p.normpath())
+            excluded2.append(p.abspath())
+    return set(excluded2)
+
+
+def is_directory_excluded(directory, excluded):
+    directory = Path(directory).normpath()
+    directory2 = directory.abspath()
+    if (directory in excluded) or (directory2 in excluded):
+        return True
+    # -- OTHERWISE:
+    return False
+
+
+def cleanup_dirs(patterns, workdir=".", excluded=None,
+                 dry_run=False, verbose=False, show_skipped=False):
     """Remove directories (and their contents) recursively.
     Skips removal if directories does not exist.
 
@@ -117,12 +150,17 @@ def cleanup_dirs(patterns, workdir=".", dry_run=False, verbose=False, show_skipp
     :param workdir:     Current work directory (default=".")
     :param dry_run:     Dry-run mode indicator (as bool).
     """
+    excluded = excluded or []
+    excluded = set([Path(p) for p in excluded])
     show_skipped = show_skipped or verbose
     current_dir = Path(workdir)
     python_basedir = Path(Path(sys.executable).dirname()).joinpath("..").abspath()
     warn2_counter = 0
     for dir_pattern in patterns:
         for directory in path_glob(dir_pattern, current_dir):
+            if is_directory_excluded(directory, excluded):
+                print("SKIP-DIR: %s (excluded)" % directory)
+                continue
             directory2 = directory.abspath()
             if sys.executable.startswith(directory2):
                 # -- PROTECT VIRTUAL ENVIRONMENT (currently in use):
@@ -237,14 +275,19 @@ def path_glob(pattern, current_dir=None):
 def clean(ctx, workdir=".", verbose=False):
     """Cleanup temporary dirs/files to regain a clean state."""
     dry_run = ctx.config.run.dry
+    config_dir = getattr(ctx.config, "config_dir", workdir)
     directories = list(ctx.config.cleanup.directories or [])
     directories.extend(ctx.config.cleanup.extra_directories or [])
     files = list(ctx.config.cleanup.files or [])
     files.extend(ctx.config.cleanup.extra_files or [])
+    excluded_directories = list(ctx.config.cleanup.excluded_directories or [])
+    excluded_directories = make_excluded(excluded_directories,
+                                         config_dir=config_dir, workdir=".")
 
     # -- PERFORM CLEANUP:
     execute_cleanup_tasks(ctx, cleanup_tasks)
-    cleanup_dirs(directories, workdir=workdir, dry_run=dry_run, verbose=verbose)
+    cleanup_dirs(directories, workdir=workdir, excluded=excluded_directories,
+                 dry_run=dry_run, verbose=verbose)
     cleanup_files(files, workdir=workdir, dry_run=dry_run, verbose=verbose)
 
     # -- CONFIGURABLE EXTENSION-POINT:
@@ -263,14 +306,20 @@ def clean_all(ctx, workdir=".", verbose=False):
     NOTE: clean task is executed last.
     """
     dry_run = ctx.config.run.dry
+    config_dir = getattr(ctx.config, "config_dir", workdir)
     directories = list(ctx.config.cleanup_all.directories or [])
     directories.extend(ctx.config.cleanup_all.extra_directories or [])
     files = list(ctx.config.cleanup_all.files or [])
     files.extend(ctx.config.cleanup_all.extra_files or [])
+    excluded_directories = list(ctx.config.cleanup_all.excluded_directories or [])
+    excluded_directories.extend(ctx.config.cleanup.excluded_directories or [])
+    excluded_directories = make_excluded(excluded_directories,
+                                         config_dir=config_dir, workdir=".")
 
     # -- PERFORM CLEANUP:
     # HINT: Remove now directories, files first before cleanup-tasks.
-    cleanup_dirs(directories, workdir=workdir, dry_run=dry_run, verbose=verbose)
+    cleanup_dirs(directories, workdir=workdir, excluded=excluded_directories,
+                 dry_run=dry_run, verbose=verbose)
     cleanup_files(files, workdir=workdir, dry_run=dry_run, verbose=verbose)
     execute_cleanup_tasks(ctx, cleanup_all_tasks)
     clean(ctx, workdir=workdir, verbose=verbose)
@@ -334,6 +383,8 @@ CLEANUP_EMPTY_CONFIG = {
     "files": [],
     "extra_directories": [],
     "extra_files": [],
+    "excluded_directories": [],
+    "excluded_files": [],
     "use_cleanup_python": False,
 }
 def make_cleanup_config(**kwargs):
@@ -348,6 +399,7 @@ namespace.add_task(git_clean)
 namespace.configure({
     "cleanup": make_cleanup_config(
         files=["**/*.bak", "**/*.log", "**/*.tmp", "**/.DS_Store"],
+        excluded_directories=[".git", ".hg", ".bzr", ".svn"],
     ),
     "cleanup_all": make_cleanup_config(
         directories=[".venv*", ".tox", "downloads", "tmp"],

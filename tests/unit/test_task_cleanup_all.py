@@ -30,6 +30,8 @@ DEFAULT_CONFIG = Config(defaults={
 })
 
 DEFAULT_KWARGS = dict(workdir=".", verbose=False)
+DEFAULT_CLEANUP_DIR_KWARGS = dict(workdir=".", excluded=set(), verbose=False)
+
 
 # ---------------------------------------------------------------------------
 # TEST SUITE
@@ -73,7 +75,7 @@ class TestCleanAllTask(object):
         expected_cleanup_dirs = ["BUILD", "DIST"]
         expected_cleanup_files = ["**/*.BAK", "**/*.LOG"]
         mock_execute_cleanup_tasks.assert_called_once_with(ctx, the_cleanup_all_tasks)
-        mock_cleanup_dirs.assert_called_once_with(expected_cleanup_dirs, dry_run=dry_run, **DEFAULT_KWARGS)
+        mock_cleanup_dirs.assert_called_once_with(expected_cleanup_dirs, dry_run=dry_run, **DEFAULT_CLEANUP_DIR_KWARGS)
         mock_cleanup_files.assert_called_once_with(expected_cleanup_files, dry_run=dry_run, **DEFAULT_KWARGS)
         mock_clean_task.assert_called_once()
         mock_other_cleanup_task.assert_called_once()
@@ -137,7 +139,7 @@ class TestCleanAllTaskExtensionPoint(object):
         # pylint: disable=line-too-long
         clean_all(ctx)
         expected_cleanup_dirs = ["build", "other", "extra_build"]
-        mock_cleanup_dirs.assert_called_once_with(expected_cleanup_dirs, dry_run=False, **DEFAULT_KWARGS)
+        mock_cleanup_dirs.assert_called_once_with(expected_cleanup_dirs, dry_run=False, **DEFAULT_CLEANUP_DIR_KWARGS)
         mock_clean_task.assert_called_once_with(ctx, workdir=".", verbose=False)
 
     def test_can_add_own_cleanup_files(self, monkeypatch):
