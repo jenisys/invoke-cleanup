@@ -32,9 +32,17 @@ DEFAULT_CONFIG = Config(defaults={
     },
 })
 
-
 def mock_read_from_stdin(*args):
     return ""
+
+
+def git_repo_setup(user_name=None, user_email=None, default_branch="main"):
+    user_name = user_name or "test_user"
+    user_email = user_email or "{name}@example.com".format(name=user_name)
+
+    run("git config --local init.defaultBranch {branch}".format(branch=default_branch))
+    run('git config --local user.email "{email}"'.format(email=user_email))
+    run('git config --local user.name "{name}"'.format(name=user_name))
 
 
 # ---------------------------------------------------------------------------
@@ -72,6 +80,7 @@ class TestGitCleanTask(object):
 
             # with capsys.disabled():
             run("git init")
+            git_repo_setup()
             git_dir = tmp_path/".git/"
             assert git_dir.is_dir()
             run('git add one.xxx')
