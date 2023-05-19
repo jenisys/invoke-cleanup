@@ -1,0 +1,17 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "pip_requirements": {
+    "fileMatch": [
+        "py.requirements/*.txt",
+        "py.requirements/all.txt",
+        "py.requirements/basic.txt",
+        "py.requirements/develop.txt",
+        "py.requirements/testing.txt",
+        "py.requirements/ci.tox.txt",
+        "py.requirements/ci.github.txt",
+        "tasks/py.requirements.txt",
+    ]
+  }
+}
