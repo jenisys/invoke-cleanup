@@ -20,9 +20,15 @@ recursive-include py.requirements  *.txt
 # DISABLED: recursive-include docs          *.rst *.txt *.css *.py *.html *.rst-* *.png Makefile
 # DISABLED: recursive-include docs/_themes  *.html *.conf *.css *.css_t LICENSE*
 
+
+prune .fleet
+prune .idea
+prune .pytest_cache
 prune .tox
 prune .venv*
 prune __*
+prune __*.txt
+prune __*.rst
 prune tasks/__
 prune examples/library_hello/build*
 prune examples/program_hello/build*

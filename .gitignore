@@ -10,6 +10,7 @@ dist/
 __pycache__/
 __*/
 .cache/
+.fleet/
 .idea/
 .pytest_cache/
 .tox/

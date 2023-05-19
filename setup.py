@@ -46,6 +46,7 @@ def find_packages_by_root_package(where):
 # -----------------------------------------------------------------------------
 # SETUP:
 # -----------------------------------------------------------------------------
+# SEE: https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
 setup(
     name="invoke-cleanup",
     version="0.3.6",
@@ -56,16 +57,13 @@ setup(
     url="http://github.com/jenisys/invoke-cleanup",
     provides = ["invoke_cleanup"],
     # packages = find_packages_by_root_package("invoke_cleanup"),
-    modules = [
-        "invoke_cleanup",
-        # DISABLED: "invoke_dry_run",   # ADD-ON.
-    ],
+    py_modules = ["invoke_cleanup"],  # DISABLED: "invoke_dry_run"
     # -- REQUIREMENTS:
     # SUPPORT: python2.7, python3.3 (or higher)
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*",
     install_requires=[
-        "invoke >= 1.3.0",
-        "six >= 1.12.0",
+        "invoke >= 1.7.0",
+        "six >= 1.16.0",
         "pycmd",
         # -- HINT: path.py => path (python-install-package was renamed for python3)
         "path.py >= 11.5.0; python_version <  '3.5'",
@@ -89,15 +87,12 @@ setup(
             "pytest <  5.0; python_version < '3.0'",
             "pytest >= 4.0; python_version >= '3.0'",
             "pytest-html >= 1.19.0",
-            "tox",
+            "tox   >= 1.8.1,<4.0",   # -- HINT: tox >= 4.0 has breaking changes.
+            "virtualenv < 20.22.0",  # -- SUPPORT FOR: Python 2.7, Python <= 3.6
             "modernize >= 0.5",
             "pylint",
-            # PREPARED: "behave >= 1.2.6",
-            # PREPARED: "PyHamcrest >= 1.9",
         ],
     },
-    # MAYBE-DISABLE: use_2to3
-    use_2to3= bool(python_version >= 3.0),
     license="BSD",
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -116,7 +111,5 @@ setup(
         "Topic :: Software Development :: Build Tools",
         "Topic :: Utilities",
     ],
-    zip_safe = True,
+    zip_safe = True
 )
-
-
