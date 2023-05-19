@@ -4,6 +4,17 @@ invoke-cleanup
 .. _`invoke-cleanup`: https://github.com/jenisys/invoke-cleanup
 .. _invoke: https://pyinvoke.org
 
+.. image:: https://github.com/jenisys/invoke-cleanup/actions/workflows/tests.yml/badge.svg
+    :target: https://github.com/jenisys/invoke-cleanup/actions/workflows/tests.yml
+    :alt: CI Build Status
+
+.. image:: https://img.shields.io/github/license/jenisys/invoke-cleanup
+    :alt: License
+
+.. image:: https://img.shields.io/pypi/v/invoke-cleanup.svg
+    :target: https://pypi.python.org/pypi/invoke-cleanup
+    :alt: Latest Version
+
 
 `invoke-cleanup`_ provides common cleanup tasks for the `invoke`_ build system.
 

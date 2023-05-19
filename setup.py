@@ -23,7 +23,7 @@ from setuptools import find_packages, setup
 # CONFIGURATION:
 # -----------------------------------------------------------------------------
 HERE = os.path.dirname(__file__)
-FIRST_LINE = 8
+FIRST_LINE = 17
 python_version = float("%s.%s" % sys.version_info[:2])
 README = os.path.join(HERE, "README.rst")
 description = "".join(open(README).readlines()[FIRST_LINE:])
