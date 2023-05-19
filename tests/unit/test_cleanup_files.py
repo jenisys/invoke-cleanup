@@ -6,6 +6,7 @@ Unit tests for :func:`invoke_cleanup.exexecute_cleanup_tasks()`.
 from __future__ import absolute_import, print_function
 from invoke_cleanup import cleanup_files
 from invoke.util import cd
+from tests.fspath import fspath_normalize, fspath_normalize_output
 import pytest
 
 
@@ -37,9 +38,10 @@ class TestCleanupFiles(object):
             cleanup_files(["**/*.xxx"], dry_run=True)
 
             captured = capsys.readouterr()
-            print(captured.out)
-            expected = "REMOVE: %s" % problematic_file
-            assert expected not in captured.out
+            captured_output = fspath_normalize_output(captured.out)
+            print(captured_output)
+            expected = fspath_normalize("REMOVE: %s" % problematic_file)
+            assert expected not in captured_output
 
     def test_remove_raises_oserror(self, tmp_path, monkeypatch, capsys):
         def mock_remove(p):
@@ -59,10 +61,11 @@ class TestCleanupFiles(object):
             cleanup_files(["**/*.xxx"])
 
             captured = capsys.readouterr()
-            print(captured.out)
-            expected1 = "REMOVE: %s" % problematic_file1
-            expected2 = "OSError: MOCK_REMOVE: %s" % problematic_file1
-            assert expected1 in captured.out
-            assert expected2 in captured.out
-            expected2 = "OSError: MOCK_REMOVE: %s" % problematic_file2
-            assert expected2 in captured.out
+            captured_output = fspath_normalize_output(captured.out)
+            print(captured_output)
+            expected1 = fspath_normalize("REMOVE: %s" % problematic_file1)
+            expected2 = fspath_normalize("OSError: MOCK_REMOVE: %s" % problematic_file1)
+            assert expected1 in captured_output
+            assert expected2 in captured_output
+            expected2 = fspath_normalize("OSError: MOCK_REMOVE: %s" % problematic_file2)
+            assert expected2 in captured_output

@@ -8,6 +8,7 @@ import sys
 import stat
 from invoke_cleanup import cleanup_files
 from invoke.util import cd
+from tests.fspath import fspath_normalize, fspath_normalize_output
 import pytest
 
 
@@ -16,6 +17,8 @@ import pytest
 # ---------------------------------------------------------------------------
 python_version = sys.version_info[:2]
 python35 = (3, 5)   # HINT: python3.8 does not raise OSErrors.
+
+ON_WINDOWS = sys.platform == "win32"
 
 
 # ---------------------------------------------------------------------------
@@ -136,6 +139,7 @@ class TestCleanupFiles(object):
         cleanup_files(["*.xxx"], cwd, dry_run=True)
         assert my_file1.exists(), "OOPS: my_file1 was removed."
 
+    @pytest.mark.skipif(ON_WINDOWS, reason="assert NOT my_file1.exists() -- is NOT_REMOVED on Windows")
     def test_with_readonly_file_is_removed(self, tmp_path):
         # -- SETUP:
         readonly_mode = 0o400   # mask: -.r--.---.---
@@ -154,6 +158,7 @@ class TestCleanupFiles(object):
         cleanup_files(["*.xxx"], cwd)
         assert not my_file1.exists(), "OOPS: my_file1 was NOT_REMOVED"
 
+    @pytest.mark.skipif(ON_WINDOWS, reason="assert NOT my_file1.exists() -- is NOT_REMOVED on Windows")
     def test_with_no_permissions_file_is_removed(self, tmp_path):
         # -- SETUP:
         readonly_mode = 0o000   # mask: -.---.---.--- NO_PERMISSIONS
@@ -171,6 +176,7 @@ class TestCleanupFiles(object):
         cleanup_files(["*.xxx"], cwd)
         assert not my_file1.exists(), "OOPS: my_file1 was NOT_REMOVED"
 
+    @pytest.mark.skipif(ON_WINDOWS, reason="assert my_file1 -- Is removed on Windows")
     def test_with_file_in_readonly_dir_is_not_removed(self, tmp_path, capsys):
         # -- SETUP:
         readonly_mode = 0o555   # dr-xr-xr-x (disabled: write-mode)
@@ -194,9 +200,11 @@ class TestCleanupFiles(object):
         assert my_file1.exists(), "OOPS: my_file1 was removed."
         if python_version < python35:
             # -- REASON: OSError is not raised for newer py3 versions.
+            my_file1_normalized = fspath_normalize(str(my_file1))
+            captured_output = fspath_normalize_output(captured.out)
             assert "OSError" in captured.out
             assert "Permission denied:" in captured.out
-            assert str(my_file1) in captured.out
+            assert my_file1_normalized in captured_output
 
     def test_without_any_matching_files(self, tmp_path):
         # -- SETUP:
@@ -256,10 +264,11 @@ class TestCleanupFiles(object):
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
 
         # -- ONLY IN NON-VERBOSE MODE:
-        expected1 = "REMOVE: {0}".format(my_dir2)
-        expected2 = "RMTREE: {0}".format(my_dir2)
-        assert expected1 not in captured.out
-        assert expected2 not in captured.out
+        expected1 = fspath_normalize("REMOVE: {0}".format(my_dir2))
+        expected2 = fspath_normalize("RMTREE: {0}".format(my_dir2))
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected1 not in captured_output
+        assert expected2 not in captured_output
 
         # -- ONLY IN VERBOSE MODE:
         # expected = "REMOVE: {0} (SKIPPED: Not a file)".format(my_dir2)
@@ -285,5 +294,6 @@ class TestCleanupFiles(object):
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
 
         # -- ONLY IN VERBOSE MODE:
-        expected = "REMOVE: {0} (SKIPPED: Not a file)".format(my_dir2)
-        assert expected in captured.out
+        expected = fspath_normalize("REMOVE: {0} (SKIPPED: Not a file)".format(my_dir2))
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected in captured_output

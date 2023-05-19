@@ -5,9 +5,14 @@ Unit tests for :func:`invoke_cleanup.cleanup_files()`.
 
 from __future__ import absolute_import, print_function
 import stat
+import sys
 from invoke_cleanup import cleanup_dirs
 from invoke.util import cd
+from tests.fspath import fspath_normalize_output, fspath_normalize
 import pytest
+
+
+ON_WINDOWS = sys.platform == "win32"
 
 
 # ---------------------------------------------------------------------------
@@ -164,12 +169,14 @@ class TestCleanupDirs(object):
         captured = capsys.readouterr()
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
-        expected = "RMTREE: {0}".format(my_dir2)
-        assert expected in captured.out
+        expected = fspath_normalize("RMTREE: {0}".format(my_dir2))
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected in captured_output
 
         # -- CLEANUP:
         readonly_dir.chmod(readonly_dir_initial_mode)
 
+    @pytest.mark.skipif(ON_WINDOWS, reason="assert not path_is_readable(no_permission_dir)")
     def test_with_no_permissions_dir__is_not_removed(self, tmp_path, capsys):
         # -- SETUP:
         no_permission_mode = 0o000   # d---.---.--- (NO_PERMISSIONS)
@@ -197,12 +204,14 @@ class TestCleanupDirs(object):
         captured = capsys.readouterr()
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
-        expected = "RMTREE: {0}".format(my_dir2)
-        assert expected in captured.out
+        expected = fspath_normalize("RMTREE: {0}".format(my_dir2))
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected in captured_output
 
         # -- CLEANUP:
         no_permission_dir.chmod(no_permission_initial_mode)
 
+    @pytest.mark.skipif(ON_WINDOWS, reason="assert my_dir2.exists() -- OOPS: my_dir2 was REMOVED")
     def test_within_readonly_dir__is_not_removed(self, tmp_path, capsys):
         # -- SETUP:
         readonly_mode = 0o555   # dr-xr-xr-x (disabled: write-mode)
@@ -228,12 +237,14 @@ class TestCleanupDirs(object):
         captured = capsys.readouterr()
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
-        expected = "RMTREE: {0}".format(my_dir2)
-        assert expected in captured.out
+        expected = fspath_normalize("RMTREE: {0}".format(my_dir2))
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected in captured_output
 
         # -- CLEANUP:
         readonly_dir.chmod(readonly_dir_initial_mode)
 
+    @pytest.mark.skipif(ON_WINDOWS, reason="ssert not path_is_readable(no_permission_dir) -- is readable")
     def test_within_no_permissions_dir__is_not_removed(self, tmp_path, capsys):
         # -- SETUP:
         no_permission_mode = 0o000   # d---.---.--- (NO_PERMISSIONS)
@@ -264,8 +275,9 @@ class TestCleanupDirs(object):
         # -- VERIFY:
         assert not my_dir1.exists(), "OOPS: my_dir1 was NOT_REMOVED"
         assert my_dir2.exists(), "OOPS: my_dir2 was REMOVED"
-        expected = "RMTREE: {0}".format(my_dir2)
-        assert expected not in captured.out, "OOPS: Traversal into NO_PERMISSION.dir"
+        expected = fspath_normalize("RMTREE: {0}".format(my_dir2))
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected not in captured_output, "OOPS: Traversal into NO_PERMISSION.dir"
 
 
     def test_without_any_matching_dirs(self, tmp_path):
@@ -321,10 +333,11 @@ class TestCleanupDirs(object):
         assert my_file2.exists(), "OOPS: my_file2 was REMOVED"
 
         # -- ONLY IN NON-VERBOSE MODE:
-        expected1 = "RMTREE: {0}".format(my_file2)
-        expected2 = "REMOVE: {0}".format(my_file2)
-        assert expected1 not in captured.out
-        assert expected2 not in captured.out
+        expected1 = fspath_normalize("RMTREE: {0}".format(my_file2))
+        expected2 = fspath_normalize("REMOVE: {0}".format(my_file2))
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected1 not in captured_output
+        assert expected2 not in captured_output
 
     def test_with_matching_file__should_skip_remove_and_showit_in_verbose_mode(self, tmp_path, capsys):
         # -- SETUP:
@@ -345,5 +358,6 @@ class TestCleanupDirs(object):
         assert my_file2.exists(), "OOPS: my_file2 was REMOVED"
 
         # -- ONLY IN VERBOSE MODE:
-        expected = "RMTREE: {0} (SKIPPED: Not a directory)".format(my_file2)
-        assert expected in captured.out
+        expected = fspath_normalize("RMTREE: {0} (SKIPPED: Not a directory)".format(my_file2))
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected in captured_output

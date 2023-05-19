@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from invoke import Config
 from invoke.util import cd
 import six
+from tests.fspath import fspath_normalize, fspath_normalize_output
 import pytest
 import coverage
 
@@ -145,12 +146,13 @@ cleanup_all:
             with cd(str(tmp_path)):
                 output = ensure_text(run_with_output("invoke cleanup.all"))
 
+        captured_output = fspath_normalize_output(output)
         assert not my_file1.exists()
         assert not my_file2.exists()
         expected1 = "REMOVE: one.xxx"
         expected2 = "REMOVE: more/two.zzz"
-        assert expected1 in output
-        assert expected2 in output
+        assert expected1 in captured_output
+        assert expected2 in captured_output
 
     def test_with_configfile_and_cleanup_directories_overrides_default(self, tmp_path):
         # -- SETUP:
@@ -182,13 +184,14 @@ cleanup_all:
             with cd(str(tmp_path)):
                 output = ensure_text(run_with_output("invoke cleanup.all"))
 
+        captured_output = fspath_normalize_output(output)
         assert my_dir0.exists(), "OOPS: DEFAULT cleanup_all.directories was NOT_OVERWRITTEN"
         assert not my_dir1.exists()
         assert not my_dir2.exists()
         expected1 = "RMTREE: one.xxx"
         expected2 = "RMTREE: more/two.zzz"
-        assert expected1 in output
-        assert expected2 in output
+        assert expected1 in captured_output
+        assert expected2 in captured_output
 
     def test_with_configfile_and_cleanup_extra_files_extends_default(self, tmp_path):
         # -- SETUP:
@@ -221,15 +224,16 @@ cleanup_all:
             with cd(str(tmp_path)):
                 output = ensure_text(run_with_output("invoke cleanup.all"))
 
+        captured_output = fspath_normalize_output(output)
         assert not my_file0.exists(), "OOPS: cleanup_all.files was NOT_REMOVED"
         assert not my_file1.exists()
         assert not my_file2.exists()
         expected0 = "REMOVE: CONFIG.bak"
         expected1 = "REMOVE: one.xxx"
         expected2 = "REMOVE: more/two.zzz"
-        assert expected0 in output
-        assert expected1 in output
-        assert expected2 in output
+        assert expected0 in captured_output
+        assert expected1 in captured_output
+        assert expected2 in captured_output
 
     def test_with_configfile_and_cleanup_extra_directories_extends_default(self, tmp_path):
         # -- SETUP:
@@ -261,15 +265,16 @@ cleanup:
             with cd(str(tmp_path)):
                 output = ensure_text(run_with_output("invoke cleanup.all"))
 
+        captured_output = fspath_normalize_output(output)
         assert not my_dir0.exists()
         assert not my_dir1.exists()
         assert not my_dir2.exists()
         expected0 = "RMTREE: .venv_CONFIG"
         expected1 = "RMTREE: one.xxx"
         expected2 = "RMTREE: more/two.zzz"
-        assert expected0 in output
-        assert expected1 in output
-        assert expected2 in output
+        assert expected0 in captured_output
+        assert expected1 in captured_output
+        assert expected2 in captured_output
 
 
 class TestCleanupWithOtherTask(object):
@@ -341,12 +346,13 @@ cleanup_all_tasks.configure(namespace.configuration())
         with cd(str(tmp_path)):
             output = ensure_text(run_with_output("invoke cleanup.all"))
 
+        captured_output = fspath_normalize_output(output)
         assert not my_file1.exists()
         assert not my_file2.exists()
         expected1 = "REMOVE: one.xxx"
         expected2 = "REMOVE: more/two.xxx"
-        assert expected1 in output
-        assert expected2 in output
+        assert expected1 in captured_output
+        assert expected2 in captured_output
 
     def test_invoke_calls_other_task_that_uses_cleanup_dirs(self, tmp_path):
         # -- SETUP:
@@ -384,12 +390,13 @@ cleanup_all_tasks.configure(namespace.configuration())
         with cd(str(tmp_path)):
             output = ensure_text(run_with_output("invoke cleanup.all"))
 
+        captured_output = fspath_normalize_output(output)
         assert not my_dir1.exists()
         assert not my_dir2.exists()
         expected1 = "RMTREE: one.xxx"
         expected2 = "RMTREE: more/two.xxx"
-        assert expected1 in output
-        assert expected2 in output
+        assert expected1 in captured_output
+        assert expected2 in captured_output
 
 #     @xfail
 #     def test_invoke_removes_other_cleanup_files(self, tmp_path):

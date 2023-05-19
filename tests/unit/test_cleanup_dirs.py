@@ -6,6 +6,7 @@ Unit tests for :func:`invoke_cleanup.exexecute_cleanup_tasks()`.
 from __future__ import absolute_import, print_function
 from invoke_cleanup import cleanup_dirs
 from invoke.util import cd
+from tests.fspath import fspath_normalize, fspath_normalize_output
 import pytest
 
 
@@ -37,10 +38,11 @@ class TestCleanupDirs(object):
         captured = capsys.readouterr()
         print(captured.out)
         # expected = "SKIP-SUICIDE: 'foo/one.xxx' contains current python executable"
-        expected1 = "SKIP-SUICIDE: '%s'" % problematic_dir
-        expected2 = "SKIP-SUICIDE: '%s' contains current python executable" % problematic_dir
-        assert expected1 in captured.out
-        assert expected2 in captured.out
+        expected1 = fspath_normalize("SKIP-SUICIDE: '%s'" % problematic_dir)
+        expected2 = fspath_normalize("SKIP-SUICIDE: '%s' contains current python executable" % problematic_dir)
+        captured_output = fspath_normalize_output(captured.out)
+        assert expected1 in captured_output
+        assert expected2 in captured_output
 
     def test_skips_rmtree_below_sys_executable_basedir(self, tmp_path, monkeypatch, capsys):
         """SKIP-SUICIDE in context of cleanup_dirs in virtual environment."""
@@ -61,4 +63,5 @@ class TestCleanupDirs(object):
             captured = capsys.readouterr()
             print(captured.out)
             expected = "SKIP-SUICIDE: 'opt/python_x.y/lib/foo/one.xxx'"
-            assert expected in captured.out
+            captured_output = fspath_normalize_output(captured.out)
+            assert expected in captured_output
