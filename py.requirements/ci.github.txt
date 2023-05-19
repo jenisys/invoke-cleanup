@@ -1,5 +1,5 @@
 -r ci.tox.txt
 
 # FIX: setuptoools problem w/ Python3.7-dev
-setuptools >= 38.5.1; python_version > '3.6'
-setuptools >= 36.2.1; python_version <= '3.6'
+# setuptools >= 38.5.1; python_version > '3.6'
+# setuptools >= 36.2.1; python_version <= '3.6'
