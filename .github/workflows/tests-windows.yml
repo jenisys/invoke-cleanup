@@ -1,4 +1,5 @@
-# -- FAST-PROTOTYPING: Tests on Windows -- Until tests are OK.
+# -- SOURCE: https://github.com/marketplace/actions/setup-python
+# SEE: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 # BASED ON: tests.yml
 # SUPPORTED PYTHON VERSIONS: https://github.com/actions/python-versions
 
@@ -9,8 +10,8 @@ on:
     branches: [ main ]
 
 # -- TEST BALLOON: Fix encoding="cp1252" problems by using "UTF-8"
-env:
-  PYTHONUTF8: 1
+# env:
+#  PYTHONUTF8: 1
 
 jobs:
   test:
