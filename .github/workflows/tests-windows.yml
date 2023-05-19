@@ -10,8 +10,8 @@ on:
     branches: [ main ]
 
 # -- TEST BALLOON: Fix encoding="cp1252" problems by using "UTF-8"
-# env:
-#  PYTHONUTF8: 1
+# DISABLED: env:
+# DISABLED:  PYTHONUTF8: 1
 
 jobs:
   test:
@@ -20,15 +20,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        python-version: ["3.11", "3.10", "3.9"]
+        python-version: ["3.11", "3.10", "3.9", "2.7"]
     steps:
       - uses: actions/checkout@v3
       # DISABLED: name: Setup Python ${{ matrix.python-version }} on platform=${{ matrix.os }}
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-          cache-dependency-path: 'py.requirements/*.txt'
+          # cache: 'pip'
+          # cache-dependency-path: 'py.requirements/*.txt'
       # -- DISABLED:
       # - name: Show Python version
       #   run: python --version
